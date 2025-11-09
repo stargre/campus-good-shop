@@ -1,3 +1,7 @@
+"""
+序列化器模块
+使用Django REST Framework序列化器，用于数据序列化和反序列化
+"""
 from rest_framework import serializers
 
 from myapp.models import Thing, Classification, Tag, User, Comment, Record, LoginLog, Order, OrderLog, OpLog, Banner, \
@@ -5,7 +9,11 @@ from myapp.models import Thing, Classification, Tag, User, Comment, Record, Logi
 
 
 class ThingSerializer(serializers.ModelSerializer):
-    # 额外字段
+    """
+    商品序列化器（完整版）
+    包含所有字段，用于商品详情
+    """
+    # 额外字段：分类标题（只读）
     classification_title = serializers.ReadOnlyField(source='classification.title')
 
     class Meta:
@@ -13,12 +21,16 @@ class ThingSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DetailThingSerializer(serializers.ModelSerializer):
-    # 额外字段
+    """
+    商品详情序列化器
+    排除多对多字段（wish、collect），用于商品详情展示
+    """
+    # 额外字段：分类标题（只读）
     classification_title = serializers.ReadOnlyField(source='classification.title')
 
     class Meta:
         model = Thing
-        # 排除多对多字段
+        # 排除多对多字段，避免序列化循环引用
         exclude = ('wish', 'collect',)
 
 class UpdateThingSerializer(serializers.ModelSerializer):
@@ -31,12 +43,16 @@ class UpdateThingSerializer(serializers.ModelSerializer):
         exclude = ('wish', 'collect',)
 
 class ListThingSerializer(serializers.ModelSerializer):
-    # 额外字段
+    """
+    商品列表序列化器
+    排除多对多字段和描述字段，用于商品列表展示，减少数据传输量
+    """
+    # 额外字段：分类标题（只读）
     classification_title = serializers.ReadOnlyField(source='classification.title')
 
     class Meta:
         model = Thing
-        # 排除字段
+        # 排除字段，减少数据传输量
         exclude = ('wish', 'collect', 'description',)
 
 

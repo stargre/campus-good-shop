@@ -1,4 +1,7 @@
-# Create your views here.
+"""
+前台商品视图模块
+提供商品列表、详情、收藏、心愿单等接口
+"""
 from django.db import connection
 from rest_framework.decorators import api_view, authentication_classes
 
@@ -11,6 +14,14 @@ from myapp.utils import dict_fetchall
 
 @api_view(['GET'])
 def list_api(request):
+    """
+    商品列表接口
+    支持按关键词、分类、标签筛选，支持按时间、热度排序
+    Args:
+        request: Django请求对象，GET参数包含keyword、c（分类）、tag、sort（排序方式）
+    Returns:
+        APIResponse: 商品列表
+    """
     if request.method == 'GET':
         keyword = request.GET.get("keyword", None)
         c = request.GET.get("c", None)
@@ -46,11 +57,18 @@ def list_api(request):
 
 @api_view(['GET'])
 def detail(request):
+    """
+    商品详情接口
+    Args:
+        request: Django请求对象，GET参数包含id
+    Returns:
+        APIResponse: 商品详情信息
+    """
     try:
         pk = request.GET.get('id', -1)
         thing = Thing.objects.get(pk=pk)
     except Thing.DoesNotExist:
-        utils.log_error(request, '对象不存在')
+        utils.log_error(request, '对象不存在')  # 记录错误日志
         return APIResponse(code=1, msg='对象不存在')
 
     if request.method == 'GET':
@@ -60,10 +78,17 @@ def detail(request):
 
 @api_view(['POST'])
 def increaseWishCount(request):
+    """
+    增加心愿单数量接口
+    Args:
+        request: Django请求对象，GET参数包含id
+    Returns:
+        APIResponse: 操作结果
+    """
     try:
         pk = request.GET.get('id', -1)
         thing = Thing.objects.get(pk=pk)
-        # wish_count加1
+        # 心愿单数量加1
         thing.wish_count = thing.wish_count + 1
         thing.save()
     except Thing.DoesNotExist:
@@ -90,6 +115,13 @@ def increaseRecommendCount(request):
 
 @api_view(['POST'])
 def addWishUser(request):
+    """
+    添加用户到心愿单接口
+    Args:
+        request: Django请求对象，GET参数包含username和thingId
+    Returns:
+        APIResponse: 操作结果
+    """
     try:
         username = request.GET.get('username', None)
         thingId = request.GET.get('thingId', None)
@@ -98,9 +130,10 @@ def addWishUser(request):
             user = User.objects.get(username=username)
             thing = Thing.objects.get(pk=thingId)
 
+            # 如果用户不在心愿单中，则添加
             if user not in thing.wish.all():
-                thing.wish.add(user)
-                thing.wish_count += 1
+                thing.wish.add(user)  # 添加多对多关系
+                thing.wish_count += 1  # 数量加1
                 thing.save()
 
     except Thing.DoesNotExist:

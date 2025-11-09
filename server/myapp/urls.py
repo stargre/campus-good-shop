@@ -1,10 +1,14 @@
+"""
+URL路由配置模块
+定义所有API接口的URL路由
+"""
 from django.urls import path
 
 from myapp import views
 
 app_name = 'myapp'
 urlpatterns = [
-    # 后台管理api
+    # ==================== 后台管理API ====================
     path('admin/overview/count', views.admin.overview.count),
     path('admin/overview/sysInfo', views.admin.overview.sysInfo),
     path('admin/thing/list', views.admin.thing.list_api),
@@ -61,7 +65,7 @@ urlpatterns = [
     path('admin/adminLogin', views.admin.user.admin_login),
 
 
-    # 前台管理api
+    # ==================== 前台用户API ====================
     path('index/classification/list', views.index.classification.list_api),
     path('index/tag/list', views.index.tag.list_api),
     path('index/user/login', views.index.user.login),

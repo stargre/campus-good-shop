@@ -1,4 +1,7 @@
-# Create your views here.
+"""
+前台订单视图模块
+提供订单的查询、创建、取消等接口
+"""
 import datetime
 
 from rest_framework.decorators import api_view, authentication_classes, throttle_classes
@@ -13,6 +16,14 @@ from myapp.serializers import OrderSerializer
 
 @api_view(['GET'])
 def list_api(request):
+    """
+    获取订单列表接口
+    支持按用户ID和订单状态筛选
+    Args:
+        request: Django请求对象，GET参数包含userId和orderStatus
+    Returns:
+        APIResponse: 订单列表
+    """
     if request.method == 'GET':
         userId = request.GET.get('userId', -1)
         orderStatus = request.GET.get('orderStatus', '')

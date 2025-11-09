@@ -1,4 +1,7 @@
-# Create your views here.
+"""
+前台评论视图模块
+提供商品评论的查询、创建、点赞等接口
+"""
 from rest_framework.decorators import api_view, authentication_classes, throttle_classes
 
 from myapp.auth.authentication import AdminTokenAuthtication
@@ -11,6 +14,14 @@ from myapp.serializers import CommentSerializer
 
 @api_view(['GET'])
 def list_api(request):
+    """
+    获取评论列表接口
+    支持按商品ID查询，支持按时间或点赞数排序
+    Args:
+        request: Django请求对象，GET参数包含thingId（商品ID）和order（排序方式）
+    Returns:
+        APIResponse: 评论列表
+    """
     if request.method == 'GET':
         thingId = request.GET.get("thingId", None)
         order = request.GET.get("order", 'recent')

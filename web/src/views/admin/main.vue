@@ -16,7 +16,7 @@
 
           <a-menu-item key="thing">
             <database-outlined/>
-            <span>菜品管理</span>
+            <span>商品管理</span>
           </a-menu-item>
           <a-menu-item key="classification">
             <layout-outlined/>

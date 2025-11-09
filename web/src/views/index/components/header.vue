@@ -43,7 +43,7 @@
       </div>
       <div>
         <a-drawer
-            title="购物车"
+            title="预选商品"
             placement="right"
             :closable="true"
             :maskClosable="true"

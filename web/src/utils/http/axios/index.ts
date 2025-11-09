@@ -1,3 +1,7 @@
+/**
+ * Axios HTTP请求配置
+ * 配置请求拦截器、响应拦截器，统一处理Token和错误
+ */
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { showMessage } from './status';
@@ -6,45 +10,55 @@ import { getToken } from '/@/utils/auth';
 import { TokenPrefix } from '/@/utils/auth';
 import {ADMIN_USER_TOKEN, USER_TOKEN, BASE_URL} from '/@/store/constants'
 
+// 创建Axios实例
 const service: AxiosInstance = axios.create({
   // baseURL: import.meta.env.BASE_URL + '',
-  baseURL: BASE_URL + '',
-  timeout: 15000,
+  baseURL: BASE_URL,  // API基础URL（已包含/myapp路径）
+  timeout: 15000,  // 请求超时时间（15秒）
 });
 
-// axios实例拦截请求
+// ==================== 请求拦截器 ====================
+// 在发送请求前统一添加Token到请求头
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-
+    // 添加后台管理Token到请求头
     config.headers.ADMINTOKEN = localStorage.getItem(ADMIN_USER_TOKEN)
+    // 添加前台用户Token到请求头
     config.headers.TOKEN = localStorage.getItem(USER_TOKEN)
 
     return config;
   },
   (error: AxiosError) => {
+    // 请求错误处理
     return Promise.reject(error);
   },
 );
 
-// axios实例拦截响应
+// ==================== 响应拦截器 ====================
+// 统一处理响应数据
 service.interceptors.response.use(
   (response: AxiosResponse) => {
+    // HTTP状态码200
     if(response.status == 200) {
+      // 业务状态码0或200表示成功
       if(response.data.code == 0 || response.data.code == 200) {
         return response
       }else {
+        // 业务失败，返回错误
         return Promise.reject(response.data)
       }
     } else {
       return Promise.reject(response.data)
     }
   },
-  // 请求失败
+  // 请求失败处理
   (error: any) => {
     console.log(error.response.status)
     if(error.response.status == 404) {
+      // 404错误处理（待实现）
       // todo
     } else if(error.response.status == 403) {
+      // 403错误处理（待实现）
       // todo
     }
     return Promise.reject(error)

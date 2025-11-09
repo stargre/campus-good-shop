@@ -5,6 +5,7 @@
     "moduleResolution": "node",
     "strict": true,
     "noLib": false,
+    "outDir": "./dist",
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "strictFunctionTypes": false,

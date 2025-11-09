@@ -4,7 +4,7 @@
     <div class="main">
       <a-row :gutter="[20,20]">
         <a-col :sm="24" :md="12" :lg="6">
-          <a-card size="small" title="菜品总数">
+          <a-card size="small" title="商品总数">
             <template #extra>
               <a-tag color="blue" slot="extra">总</a-tag>
             </template>

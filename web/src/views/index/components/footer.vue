@@ -1,7 +1,6 @@
 <template>
   <div class="footer-view">
     <div class="foot-link-box flex-view">
-      <a class="foot-link" @click="handleSource">源码</a>
       <div class="link-split"></div>
       <a href="/admin" class="foot-link" target="_blank">后台管理</a>
       <div class="link-split"></div>
@@ -11,9 +10,9 @@
       <span>
         <a style="color: rgb(174, 174, 174);">鲁ICP备12345678号</a>
       </span>
-      <span>&nbsp;&nbsp;鲁公网安备123456&nbsp;&nbsp;新出发零字第东123456号&nbsp;&nbsp;作者微信: lengqin1024</span>
+      <span>&nbsp;&nbsp;鲁公网安备123456&nbsp;&nbsp;新出发零字第东123456号&nbsp;&nbsp;作者QQ: 1575100890</span>
     </div>
-    <div class="address">2022-2023 © 梦想工作室 · All Rights Reserved</div>
+    <div class="address">2022-2023 © 第14小组 · All Rights Reserved</div>
   </div>
 </template>
 
@@ -28,8 +27,8 @@ export default {
   methods: {
     handleSource(){
       Modal.info({
-        title: '欢迎体验',
-        content: '使用过程中遇到问题，可以咨询作者：lengqin1024（微信）',
+        title: '欢迎来到我们的校内闲置商品发布系统',
+        content: '使用过程中遇到问题，可以咨询我们小组成员：1575100890（QQ）',
         onOk() {},
       });
     }

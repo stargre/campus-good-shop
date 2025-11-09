@@ -23,8 +23,8 @@ export default {
   },
   mounted() {
     Modal.info({
-      title: '欢迎体验',
-      content: '使用过程中遇到问题，可以咨询作者：lengqin1024（微信）',
+      title: '欢迎来到校内闲置商品发布平台',
+      content: '使用过程中遇到问题，可以咨询小组成员：1575100890（QQ）',
       onOk() {},
     });
   }

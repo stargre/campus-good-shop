@@ -1,5 +1,7 @@
-// const BASE_URL = 'http://127.0.0.1:8000'
-const BASE_URL = 'http://124.221.83.178:9004'
+// API基础URL配置
+// 本地开发环境
+const BASE_URL = 'http://127.0.0.1:8000'
+// const BASE_URL = 'http://124.221.83.178:9004/myapp'
 
 const USER_ID = 'user_id'
 const USER_NAME = 'user_name'

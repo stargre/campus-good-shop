@@ -1,4 +1,7 @@
-# Create your views here.
+"""
+前台地址视图模块
+提供用户收货地址的查询、创建、更新、删除接口
+"""
 from rest_framework.decorators import api_view, authentication_classes
 
 from myapp import utils
@@ -10,6 +13,13 @@ from myapp.serializers import AddressSerializer
 
 @api_view(['GET'])
 def list_api(request):
+    """
+    获取地址列表接口
+    Args:
+        request: Django请求对象，GET参数包含userId
+    Returns:
+        APIResponse: 地址列表
+    """
     if request.method == 'GET':
         userId = request.GET.get('userId', -1)
 

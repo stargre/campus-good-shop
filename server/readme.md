@@ -10,9 +10,10 @@ CREATE DATABASE IF NOT EXISTS python_food DEFAULT CHARSET utf8 COLLATE utf8_gene
 ```
 3. 恢复sql数据
 ```
-use shop
-source xxxx.sql
+use python_food
+source D:/github/LocalResposity/Campus/python_food/python_food.sql
 ```
+注意：请将路径替换为实际的SQL文件路径
 4. 修改settings.py中的配置信息
 5. 复制资源，将upload文件夹复制到server目录下
 6. 安装python 3.8
@@ -30,11 +31,11 @@ python manage.py runserver 0.0.0.0:9003
 
 ### 删除数据库
 
-drop database if exists shop;
+drop database if exists python_food;
 
 ### 创建数据库
 
-CREATE DATABASE IF NOT EXISTS shop DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+CREATE DATABASE IF NOT EXISTS python_food DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
 
 
 ### 迁移数据库表
@@ -70,7 +71,8 @@ ForeignKey的时候字段会自动加_id后缀
 数据库备份命令:
 mysqldump -u root -p --databases 数据库名称 > xxx.sql
 数据库还原命令:
-source D:/xxx/xxx/shop.sql;
+source D:/xxx/xxx/python_food.sql;
+注意：请将路径替换为实际的SQL文件路径
 创建管理员命令：
 insert into b_user(username,password,role,status) values('admin111',md5('admin111'),1,'0');
 
