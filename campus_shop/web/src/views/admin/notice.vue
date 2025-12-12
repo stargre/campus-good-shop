@@ -31,7 +31,7 @@
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除?" ok-text="是" cancel-text="否" @confirm="confirmDelete(record)">
-                <a href="#">删除</a>
+                <a-button type="link">删除</a-button>
               </a-popconfirm>
             </span>
           </template>
@@ -143,11 +143,14 @@ const getDataList = () => {
   })
       .then((res) => {
         data.loading = false;
-        console.log(res);
-        res.data.forEach((item: any, index: any) => {
-          item.index = index + 1;
-        });
-        data.noticeList = res.data;
+        const list = Array.isArray(res.data) ? res.data : []
+        const mapped = list.map((item: any, index: any) => ({
+          id: item.b_notice_id,
+          title: item.notice_content,
+          content: item.notice_content,
+          index: index + 1,
+        }))
+        data.noticeList = mapped;
         data.loading = false;
       })
       .catch((err) => {
@@ -190,7 +193,7 @@ const handleEdit = (record: any) => {
 
 const confirmDelete = (record: any) => {
   console.log('delete', record);
-  deleteApi({ ids: record.id })
+  deleteApi({ id: record.id })
       .then((res) => {
         getDataList();
       })
@@ -223,8 +226,8 @@ const handleOk = () => {
       .then(() => {
         if (modal.editFlag) {
           updateApi({
-            id: modal.form.id
-          },modal.form)
+            b_notice_id: modal.form.id
+          }, { notice_content: modal.form.title })
               .then((res) => {
                 hideModal();
                 getDataList();
@@ -234,7 +237,7 @@ const handleOk = () => {
                 message.error(err.msg || '操作失败');
               });
         } else {
-          createApi(modal.form)
+          createApi({ notice_content: modal.form.title })
               .then((res) => {
                 hideModal();
                 getDataList();

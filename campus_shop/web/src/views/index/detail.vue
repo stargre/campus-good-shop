@@ -26,172 +26,310 @@
             <div class="tags" style="position: static; margin-top: 20px;">
               <div class="category-box">
                 <span class="title">分类：</span>
-                <span>{{ detailData.category_name }}</span>
+                <a-tag color="geekblue">{{ detailData.category_name }}</a-tag>
               </div>
+            </div>
+            <div style="margin-top: 20px; padding: 12px; background: #f5f5f5; border-radius: 4px;" v-if="detailData.content">
+              <div style="font-weight: 600; margin-bottom: 8px; color: #333;">商品简介</div>
+              <div style="color: #666; line-height: 1.6; white-space: pre-wrap;">{{ detailData.content }}</div>
             </div>
           </div>
           <div class="product-counts">
-            <button class="buy-btn" @click="handleReserve" v-if="detailData.status === 1">预约商品</button>
-            <button class="buy-btn" disabled v-else>已售出</button>
-            <div class="flex-view count-item pointer">
-              <div class="count-img">
-                <img src="/@/assets/images/ic-views.png" alt="浏览" />
-              </div>
-              <div class="count-box">
-                <div class="count-text-box">
-                  <span class="count-title">浏览次数</span>
-                </div>
-                <div class="count-num-box">{{ detailData.views || 0 }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="product-content-view flex-view">
-        <div class="main-content">
-          <div class="main-tab">
-            <div class="order-view">
-              <span 
-                class="tab" 
-                :class="{ 'tab-select': selectTabIndex === 0 }"
-                @click="selectTab(0)"
+            <div class="action-row">
+              <a-button
+                type="primary"
+                size="large"
+                shape="round"
+                class="cta-btn"
+                :disabled="detailData.status !== 1"
+                @click="showReserveModal = true"
               >
-                商品详情
-              </span>
-              <span 
-                class="tab" 
-                :class="{ 'tab-select': selectTabIndex === 1 }"
-                @click="selectTab(1)"
+                <template #icon><CalendarOutlined /></template>
+                预约商品
+              </a-button>
+              <a-button
+                size="large"
+                shape="round"
+                class="cta-btn ghost"
+                @click="handleToggleCart"
               >
-                留言评论
-              </span>
-              <span :style="{ left: tabUnderLeft + 'px' }" class="tab-underline"></span>
+                <template #icon>
+                  <component :is="isInCart ? DeleteOutlined : ShoppingCartOutlined" />
+                </template>
+                {{ isInCart ? '移除购物车' : '加入购物车' }}
+              </a-button>
+              <a-button
+                size="large"
+                shape="round"
+                :class="['cta-btn', isFavorited ? 'favored' : 'ghost']"
+                @click="handleToggleFavorite"
+              >
+                <template #icon>
+                  <component :is="isFavorited ? HeartFilled : HeartOutlined" />
+                </template>
+                {{ isFavorited ? '取消收藏' : '加入收藏' }}
+              </a-button>
             </div>
-          </div>
-          
-          <div v-if="selectTabIndex === 0" class="text">
-            {{ detailData.description }}
-          </div>
-          
-          <div v-else-if="selectTabIndex === 1" class="product-comment">
-            <div class="publish flex-view">
-              <img class="mine-img" src="/@/assets/images/avatar.jpg" alt="" />
-              <input ref="commentRef" type="text" class="content-input" placeholder="写下你的留言..." />
-              <button class="send-btn" @click="sendComment">发送</button>
-            </div>
-            
-            <div class="tab-view flex-view">
-              <span class="count-text">评论 ({{ commentData.length }})</span>
-              <div class="tab-box flex-view">
-                <span 
-                  :class="{ 'tab-select': sortIndex === 0 }"
-                  @click="sortCommentList('recent')"
-                >
-                  最新
-                </span>
-                <span class="line"></span>
-                <span 
-                  :class="{ 'tab-select': sortIndex === 1 }"
-                  @click="sortCommentList('hot')"
-                >
-                  最热
-                </span>
-              </div>
-            </div>
-            
-            <div class="comments-list">
-              <div class="comment-item" v-for="item in commentData" :key="item.id">
-                <div class="flex-item flex-view">
-                  <img class="avator" src="/@/assets/images/avatar.jpg" alt="" />
-                  <div class="person">
-                    <div class="name">{{ item.user_name }}</div>
-                    <div class="time">{{ item.create_time }}</div>
-                  </div>
-                  <div class="float-right">
-                    <span @click="like(item.id)">点赞 <span class="num">{{ item.likes || 0 }}</span></span>
-                  </div>
+
+            <div class="description-card" v-if="detailData.content || detailData.location || detailData.quality_text">
+              <div class="desc-header">
+                <div class="desc-title">商品简介</div>
+                <div class="desc-meta">
+                  <span class="meta-item">地点：{{ detailData.location || '未知地点' }}</span>
+                  <span class="meta-item">成色：{{ detailData.quality_text || '未知' }}</span>
+                  <span class="meta-item">发布者：{{ detailData.user_name || '匿名' }}</span>
                 </div>
-                <div class="comment-content">{{ item.content }}</div>
               </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="recommend">
-          <div class="title">推荐商品</div>
-          <div class="products">
-            <div class="product-item" v-for="item in recommendData" :key="item.id" @click="handleDetail(item)">
-              <div class="img-view">
-                <img :src="item.cover" :alt="item.title" />
-              </div>
-              <div class="info-view">
-                <div class="product-name">{{ item.title }}</div>
-                <div class="price">¥{{ item.price }}</div>
-                <div class="translators">{{ item.location }}</div>
-              </div>
+              <div class="desc-body" v-if="detailData.content">{{ detailData.content }}</div>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <div class="comments" style="width:1024px;margin:20px auto;">
+      <h3 style="margin-bottom:12px;">评论</h3>
+      <div v-if="commentList.length === 0" style="color:#6f6f6f;">暂无评论</div>
+      <a-list v-else :data-source="commentList" item-layout="horizontal">
+        <template #renderItem="{ item }">
+          <a-list-item>
+            <a-list-item-meta :description="item.comment_time">
+              <template #title>
+                <div class="comment-title">{{ item.buyer_name }}</div>
+              </template>
+              <template #avatar>
+                <a-avatar :src="getImageUrl(item.avatar || item.user_avart || '') || AvatarImg" size="32" />
+              </template>
+            </a-list-item-meta>
+            <div class="comment-content">{{ item.comment_content }}</div>
+            <a-button v-if="item.user_id === userStore.user_id" type="link" danger @click="handleDeleteComment(item)">删除</a-button>
+          </a-list-item>
+        </template>
+      </a-list>
+      <div style="margin-top:12px;">
+        <Input.TextArea v-model:value="commentForm.content" :rows="3" placeholder="写下你的看法" />
+        <div style="margin-top:8px;">
+          <a-button type="primary" @click="handleCreateComment">发布评论</a-button>
+        </div>
+      </div>
+    </div>
     <Footer/>
+    <!-- 预约弹窗 -->
+    <a-modal
+      v-model:visible="showReserveModal"
+      title="预约商品"
+      :confirm-loading="reserveLoading"
+      @ok="handleReserve"
+      @cancel="showReserveModal = false"
+    >
+      <div class="reserve-form">
+        <div class="form-item">
+          <label>预约时间：</label>
+          <DatePicker
+            v-model:value="reserveForm.reserve_time"
+            style="width: 100%;"
+            placeholder="请选择预约日期"
+            format="YYYY-MM-DD"
+          />
+        </div>
+        <div class="form-item">
+          <label>交易地点：</label>
+          <Input
+            v-model:value="reserveForm.trade_location"
+            placeholder="请输入交易地点"
+          />
+        </div>
+        <div class="form-item">
+          <label>备注信息：</label>
+          <Input.TextArea
+            v-model:value="reserveForm.remark"
+            placeholder="请输入备注信息（可选）"
+            :rows="3"
+          />
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 <script setup>
 import {ref, reactive, onMounted} from 'vue'
-import {message} from "ant-design-vue";
+import {message, Modal, Form, Input, DatePicker, TimePicker} from "ant-design-vue";
 import Header from '/@/views/index/components/header.vue'
 import Footer from '/@/views/index/components/footer.vue'
-import {
-  detailApi,
-  listApi as listProductList,
-} from '/@/api/index/product'
-import {createReserve} from '/@/api/index/order'
-import {listProductCommentsApi, createApi as createCommentApi, likeApi} from '/@/api/index/comment'
-import {BASE_URL} from "/@/store/constants";
-import {useRoute, useRouter} from "vue-router";
-import {useUserStore} from "/@/store";
+import {useRouter, useRoute} from 'vue-router'
+import {useUserStore} from '/@/store'
+import {detailApi, reserveProductApi} from '/@/api/index/product'
+import { getImageUrl } from '/@/utils/url'
+import { createOrder } from '/@/api/index/order'
+import {createApi as createCommentApi, listProductCommentsApi, deleteApi as deleteCommentApi} from '/@/api/index/comment'
+import { addProductCollectUserApi, getUserCollectListApi, removeProductCollectUserApi } from '/@/api/index/productCollect'
+import AvatarImg from '/@/assets/images/avatar.jpg'
+import { CalendarOutlined, ShoppingCartOutlined, HeartOutlined, HeartFilled, DeleteOutlined } from '@ant-design/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
-const userStore = useUserStore();
+const userStore = useUserStore()
 
-let productId = ref('')
-let detailData = ref({})
-let tabUnderLeft = ref(6)
-let selectTabIndex = ref(0)
+// 商品详情数据
+const detailData = ref({
+  cover: '',
+  title: '',
+  price: 0,
+  status: 1,
+  location: '',
+  create_time: '',
+  user_name: '',
+  views: 0,
+  category_name: ''
+})
 
-let commentData = ref([])
-let recommendData = ref([])
-let sortIndex = ref(0)
-let order = ref('recent') // 默认排序最新
+// 评论
+const commentList = ref([])
+const commentForm = ref({ content: '' })
+const isFavorited = ref(false)
 
-let commentRef = ref()
+// 预约表单
+const showReserveModal = ref(false)
+const reserveLoading = ref(false)
+const reserveForm = ref({
+  reserve_time: '',
+  trade_location: '',
+  remark: ''
+})
 
 onMounted(() => {
-  productId.value = route.query.id?.trim() || ''
-  if (productId.value) {
-    getProductDetail()
-    getRecommendProduct()
-    getCommentList()
+  const productId = route.query.id?.trim() || ''
+  if (productId) {
+    getProductDetail(productId)
+    loadComments(productId)
+    checkFavorite(productId)
+    refreshIsInCart()
   }
 })
 
-const selectTab = (index) => {
-  selectTabIndex.value = index
-  tabUnderLeft.value = 6 + 80 * index
-}
-
-const getProductDetail = () => {
-  detailApi({id: productId.value}).then(res => {
+const getProductDetail = (id) => {
+  detailApi({id: id}).then(res => {
     detailData.value = res.data
-    if (detailData.value.cover) {
-      detailData.value.cover = BASE_URL + detailData.value.cover
+    // 将backend返回的product_title映射为title
+    detailData.value.title = res.data.product_title
+    // 将backend返回的product_price_yuan映射为price
+    detailData.value.price = res.data.product_price_yuan
+    // 将backend返回的location映射为location（如果没有则使用默认值）
+    detailData.value.location = res.data.location || '未知地点'
+    // 映射商品状态
+    detailData.value.status = res.data.product_status
+    // 设置商品封面图片
+    if (res.data.images && res.data.images.length > 0) {
+      detailData.value.cover = getImageUrl(String(res.data.images[0].image_url || ''))
+    } else {
+      detailData.value.cover = ''
     }
   }).catch(err => {
     message.error('获取商品详情失败')
   })
+}
+
+const loadComments = (productId) => {
+  listProductCommentsApi({ productId }).then(res => {
+    const list = Array.isArray(res.data) ? res.data : []
+    commentList.value = list.map(it => ({
+      ...it,
+      avatar: getImageUrl(it.avatar || it.user_avart || ''),
+    }))
+  }).catch(() => {})
+}
+
+const handleCreateComment = () => {
+  const content = commentForm.value.content?.trim()
+  if (!userStore.user_id) {
+    message.warn('请先登录')
+    router.push({name:'login'})
+    return
+  }
+  if (!content) {
+    message.warn('评论内容不能为空')
+    return
+  }
+  const productId = route.query.id?.trim() || ''
+  createCommentApi({ content, product_id: Number(productId) }).then(() => {
+    message.success('评论成功')
+    commentForm.value.content = ''
+    loadComments(productId)
+  }).catch(err => {
+    message.error(err.msg || '评论失败')
+  })
+}
+
+const handleDeleteComment = (c) => {
+  deleteCommentApi({ ids: String(c.comment_id) }).then(() => {
+    message.success('已删除')
+    const productId = route.query.id?.trim() || ''
+    loadComments(productId)
+  }).catch(err => {
+    message.error(err.msg || '删除失败')
+  })
+}
+
+const isInCart = ref(false)
+const refreshIsInCart = () => {
+  const gwcText = localStorage.getItem('gwc')
+  let gwc = []
+  if (gwcText) {
+    try { gwc = JSON.parse(gwcText).gwc || [] } catch (_) { gwc = [] }
+  }
+  const id = route.query.id?.trim()
+  isInCart.value = !!gwc.find(x => String(x.id) === String(id))
+}
+const handleToggleCart = () => {
+  const gwcText = localStorage.getItem('gwc')
+  let gwc = []
+  if (gwcText) {
+    try { gwc = JSON.parse(gwcText).gwc || [] } catch (_) { gwc = [] }
+  }
+  const id = route.query.id?.trim()
+  const idx = gwc.findIndex(x => String(x.id) === String(id))
+  if (idx !== -1) {
+    gwc.splice(idx, 1)
+    localStorage.setItem('gwc', JSON.stringify({ gwc }))
+    isInCart.value = false
+    message.success('已移除预选（购物车）')
+  } else {
+    gwc.push({ id, title: detailData.value.title, price: detailData.value.price, count: 1 })
+    localStorage.setItem('gwc', JSON.stringify({ gwc }))
+    isInCart.value = true
+    message.success('已加入预选（购物车）')
+  }
+}
+
+const checkFavorite = (productId) => {
+  getUserCollectListApi({ page: 1, page_size: 100 }).then(res => {
+    const list = (res.data && res.data.list) ? res.data.list : []
+    isFavorited.value = list.some(i => String(i.product_id) === String(productId))
+  }).catch(() => { isFavorited.value = false })
+}
+
+const handleToggleFavorite = () => {
+  const id = route.query.id?.trim()
+  if (!userStore.user_id) {
+    message.warn('请先登录')
+    router.push({name:'login'})
+    return
+  }
+  if (isFavorited.value) {
+    removeProductCollectUserApi({ product_id: id }).then(() => {
+      isFavorited.value = false
+      message.success('已取消收藏')
+    }).catch(err => {
+      message.error(err.msg || '取消失败')
+    })
+  } else {
+    addProductCollectUserApi({ product_id: id }).then(() => {
+      isFavorited.value = true
+      message.success('已加入收藏')
+    }).catch(err => {
+      message.warn(err.msg || '该商品已在收藏')
+      isFavorited.value = true
+    })
+  }
 }
 
 const handleReserve = () => {
@@ -201,81 +339,53 @@ const handleReserve = () => {
     router.push({name: 'login'})
     return
   }
-  
-  createReserve({product_id: productId.value, user_id: userId}).then(res => {
-    message.success('预约成功！请等待卖家联系')
-  }).catch(err => {
-    message.error('预约失败，请稍后重试')
-  })
-}
-
-const getRecommendProduct = () => {
-  listProductList({sort: 'recommend'}).then(res => {
-    res.data.forEach((item, index) => {
-      if (item.cover) {
-        item.cover = BASE_URL + item.cover
-      }
-    })
-    recommendData.value = res.data.slice(0, 6)
-  }).catch(err => {
-    console.log('获取推荐商品失败', err)
-  })
-}
-
-const handleDetail = (item) => {
-  // 跳转新页面
-  let text = router.resolve({name: 'detail', query: {id: item.id}})
-  window.open(text.href, '_blank')
-}
-
-const sendComment = () => {
-  let text = commentRef.value?.value?.trim() || ''
-  if (text.length <= 0) {
+  if (!reserveForm.value.reserve_time) {
+    message.warn('请选择预约时间')
     return
   }
-  commentRef.value.value = ''
-  let userId = userStore.user_id
-  if (userId) {
-    createCommentApi({content: text, product: productId.value, user: userId}).then(res => {
-      getCommentList()
-    }).catch(err => {
-      console.log('发送评论失败', err)
-    })
-  } else {
-    message.warn('请先登录！')
-    router.push({name: 'login'})
+  if (!reserveForm.value.trade_location) {
+    message.warn('请输入交易地点')
+    return
   }
-}
-
-const like = (commentId) => {
-  likeApi({commentId: commentId}).then(res => {
-    getCommentList()
+  const id = route.query.id?.trim()
+  if (reserveLoading.value) return
+  reserveLoading.value = true
+  reserveProductApi({
+    product_id: id,
+    reserve_time: reserveForm.value.reserve_time,
+    trade_location: reserveForm.value.trade_location,
+    remark: reserveForm.value.remark
+  }).catch(() => {})
+  createOrder({ product_id: Number(id) }).then(res => {
+    const order = res.data
+    if (order && order.order_id) {
+      message.success('已生成待支付订单')
+      showReserveModal.value = false
+      router.push({ name: 'pay', query: { id: order.order_id, amount: detailData.value.price, title: detailData.value.title } })
+    } else {
+      message.warn('订单创建成功，但返回信息缺失')
+    }
   }).catch(err => {
-    console.log('点赞失败', err)
-  })
+    message.error(err.msg || '预约/下单失败')
+  }).finally(() => { reserveLoading.value = false })
 }
-
-const getCommentList = () => {
-  listProductCommentsApi({productId: productId.value, order: order.value}).then(res => {
-    commentData.value = res.data
-  }).catch(err => {
-    console.log('获取评论失败', err)
-  })
-}
-
-const sortCommentList = (sortType) => {
-  if (sortType === 'recent') {
-    sortIndex.value = 0
-  } else {
-    sortIndex.value = 1
-  }
-  order.value = sortType
-  getCommentList()
-}
-
 </script>
-<style scoped lang="less">
+<style scoped>
+.reserve-form {
+  padding: 20px 0;
+}
 
+.form-item {
+  margin-bottom: 20px;
+}
+
+.form-item label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+</style>
+<style scoped lang="less">
 .hide {
   display: none;
 }
@@ -308,573 +418,97 @@ const sortCommentList = (sortType) => {
     flex: 1;
     display: flex;
   }
-
-  .mobile-share-box {
-    height: 38px;
-    background: transparent;
-    padding: 0 16px;
-    margin: 12px 0;
-    font-size: 0;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    -webkit-box-pack: justify;
-    -ms-flex-pack: justify;
-    justify-content: space-between;
-
-    .state {
-      width: 64px;
-      height: 24px;
-      line-height: 24px;
-      background: rgba(70, 132, 226, .1);
-      border-radius: 2px;
-      font-weight: 500;
-      font-size: 12px;
-      color: #4684e2;
-      text-align: center;
-    }
-
-    .share-img {
-      background: #fff;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      text-align: center;
-
-      img {
-        position: relative;
-        top: 4px;
-        width: 24px;
-      }
-    }
-  }
-
-  .product-img-box {
-    -webkit-box-flex: 0;
-    -ms-flex: 0 0 235px;
-    flex: 0 0 235px;
-    margin: 0 40px 0 0;
-
-    img {
-      width: 255px;
-      height: 200px;
-      background-size: cover;
-      object-fit: cover;
-      display: block;
-    }
-  }
-
-  .product-info-box {
-    text-align: left;
-    padding: 0;
-    margin: 0;
-  }
-
-  .product-state {
-    height: 26px;
-    line-height: 26px;
-
-    .state {
-      font-weight: 500;
-      color: #4684e2;
-      background: rgba(70, 132, 226, .1);
-      border-radius: 2px;
-      padding: 5px 8px;
-      margin-right: 16px;
-    }
-
-    span {
-      font-size: 14px;
-      color: #152844;
-    }
-  }
-
-  .product-name {
-    line-height: 32px;
-    margin: 16px 0;
-    color: #0F1111 !important;
-    font-size: 18px !important;
-    font-weight: 400 !important;
-    font-style: normal !important;
-    text-transform: none !important;
-    text-decoration: none !important;
-  }
-
-  .translators, .authors {
-    line-height: 18px;
-    font-size: 14px;
-    margin: 8px 0;
-    -webkit-box-align: start;
-    -ms-flex-align: start;
-    align-items: flex-start;
-    -webkit-box-pack: start;
-    -ms-flex-pack: start;
-    justify-content: flex-start;
-
-    .name {
-      color: #315c9e;
-      white-space: normal;
-    }
-  }
-
-  .categories {
-    position: absolute;
-    bottom: 20px;
-    margin-top: 16px;
-
-    .category-box {
-      color: #152844;
-      font-size: 14px;
-
-      .title {
-        color: #787878;
-      }
-    }
-  }
-
-  .product-counts {
-    -webkit-box-flex: 0;
-    -ms-flex: 0 0 235px;
-    flex: 0 0 235px;
-    margin-left: 20px;
-  }
-
-  .pointer {
-    cursor: pointer;
-  }
-
-  .count-item {
-    height: 64px;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    cursor: pointer;
-  }
-
-  .count-img {
-    -webkit-box-flex: 0;
-    -ms-flex: 0 0 32px;
-    flex: 0 0 32px;
-    margin-right: 24px;
-    font-size: 0;
-
-    img {
-      width: 100%;
-      display: block;
-    }
-  }
-
-  .count-box {
-    position: relative;
-    border-bottom: 1px solid #cedce4;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    -webkit-box-pack: justify;
-    -ms-flex-pack: justify;
-    justify-content: space-between;
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-    height: 100%;
-  }
-
-  .count-text-box {
-    font-size: 0;
-
-    .count-title {
-      color: #152844;
-      font-weight: 600;
-      font-size: 16px;
-      line-height: 18px;
-      display: block;
-      height: 18px;
-    }
-  }
-
-  .count-num-box {
-    font-weight: 600;
-    font-size: 20px;
-    line-height: 24px;
-    color: #152844;
-  }
 }
-
-.buy-btn {
-  cursor: pointer;
-  display: block;
-  background: #4684e2;
-  border-radius: 4px;
-  text-align: center;
+ .product-img-box {
+   width: 420px;
+   height: 320px;
+   border-radius: 12px;
+   overflow: hidden;
+   box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+ }
+ .product-img-box img {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   display: block;
+ }
+ .product-info-box {
+   -webkit-box-flex: 1;
+   -ms-flex: 1;
+   flex: 1;
+   padding: 0 24px;
+ }
+ .product-state {
+   display: flex;
+   align-items: center;
+   gap: 12px;
+   color: #6B7280;
+ }
+ .state {
+   padding: 2px 8px;
+   border-radius: 999px;
+   font-size: 12px;
+ }
+ .status-on { background: #22c55e; color: #fff; }
+ .status-off { background: #9CA3AF; color: #fff; }
+ .product-name {
+   margin-top: 8px;
+   color: #0F1111;
+   font-size: 22px;
+   font-weight: 600;
+ }
+ .price {
+   margin-top: 16px;
+   color: #ef4444;
+   font-size: 24px;
+   font-weight: 700;
+ }
+.category-box { margin-top: 16px; }
+.action-row { margin-top: 12px; display: flex; gap: 12px; }
+.cta-btn {
+  transition: transform .08s ease, box-shadow .16s ease, background-color .2s ease, color .2s ease;
+}
+.cta-btn.ghost {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+}
+.cta-btn.favored {
+  background: #ef4444;
   color: #fff;
-  font-size: 14px;
-  height: 36px;
-  line-height: 36px;
-  width: 110px;
-  outline: none;
-  border: none;
+}
+.cta-btn:active { transform: scale(0.98); box-shadow: inset 0 2px 8px rgba(0,0,0,0.12); }
+.cta-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,0,0,0.08); }
+
+.description-card {
   margin-top: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  border-radius: 8px;
+  padding: 18px;
+  box-shadow: 0 6px 20px rgba(16,24,40,0.04);
 }
-
-.buy-btn img {
-  width: 12px;
-  margin-right: 2px;
-  vertical-align: middle;
-}
-
-.buy-btn span {
-  vertical-align: middle;
-}
-
-.buy-way {
-  overflow: hidden;
-
-  .title {
-    font-weight: 600;
-    font-size: 18px;
-    height: 26px;
-    line-height: 26px;
-    color: #152844;
-    margin-bottom: 12px;
-  }
-}
-
-.product-content-view {
-  margin-top: 40px;
-  padding-bottom: 50px;
-}
-
-.main-content {
-  -webkit-box-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-
-  .text {
-    color: #484848;
-    font-size: 16px;
-    line-height: 26px;
-    padding-left: 12px;
-    margin: 11px 0;
-    white-space: pre-wrap;
-  }
-}
-
-.main-tab {
-  border-bottom: 1px solid #cedce4;
-}
-
-.order-view {
-  position: relative;
-  color: #6c6c6c;
-  font-size: 14px;
-  line-height: 40px;
-
-  .title {
-    margin-right: 8px;
-  }
-
-  .tab {
-    margin-right: 20px;
-    cursor: pointer;
-    color: #5f77a6;
-    font-size: 16px;
-    cursor: pointer;
-  }
-
-  .tab-select {
-    color: #152844;
-    font-weight: 600;
-  }
-
-  .tab-underline {
-    position: absolute;
-    bottom: 0;
-    left: 84px;
-    width: 16px;
-    height: 4px;
-    background: #4684e2;
-    -webkit-transition: left .3s;
-    transition: left .3s;
-  }
-}
-
-.recommend {
-  -webkit-box-flex: 0;
-  -ms-flex: 0 0 235px;
-  flex: 0 0 235px;
-  margin-left: 20px;
-
-  .title {
-    font-weight: 600;
-    font-size: 18px;
-    line-height: 26px;
-    color: #152844;
-    margin-bottom: 12px;
-  }
-
-  .products {
-    border-top: 1px solid #cedce4;
-
-    .product-item {
-      min-width: 255px;
-      max-width: 255px;
-      position: relative;
-      flex: 1;
-      margin-right: 20px;
-      height: fit-content;
-      overflow: hidden;
-      margin-top: 26px;
-      margin-bottom: 36px;
-      padding-bottom: 24px;
-      border-bottom: 1px #e1e1e1 solid;
-      cursor: pointer;
-
-      .img-view {
-        //background: #f3f3f3;
-        //text-align: center;
-        height: 200px;
-        width: 255px;
-        //border: 1px #f3f3f3 solid;
-
-        img {
-          height: 200px;
-          width: 255px;
-          overflow: hidden;
-          margin: 0 auto;
-          background-size: cover;
-          object-fit: cover;
-        }
-      }
-
-      .info-view {
-        //background: #f6f9fb;
-        overflow: hidden;
-        padding: 0 16px;
-
-        .product-name {
-          line-height: 32px;
-          margin-top: 12px;
-          color: #0F1111 !important;
-          font-size: 18px !important;
-          font-weight: 400 !important;
-          font-style: normal !important;
-          text-transform: none !important;
-          text-decoration: none !important;
-        }
-
-        .price {
-          color: #ff7b31;
-          font-size: 20px;
-          line-height: 20px;
-          margin-top: 4px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .translators {
-          color: #6f6f6f;
-          font-size: 12px;
-          line-height: 14px;
-          margin-top: 4px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-      }
-    }
-
-  }
-}
-
-.flex-view {
+.desc-header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
-
-.product-comment {
-  .title {
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 22px;
-    height: 22px;
-    color: #152844;
-    margin: 24px 0 12px;
-  }
-
-  .publish {
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-
-    .mine-img {
-      -webkit-box-flex: 0;
-      -ms-flex: 0 0 40px;
-      flex: 0 0 40px;
-      margin-right: 12px;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-    }
-
-    .content-input {
-      -webkit-box-flex: 1;
-      -ms-flex: 1;
-      flex: 1;
-      background: #f6f9fb;
-      border-radius: 4px;
-      height: 32px;
-      line-height: 32px;
-      color: #484848;
-      padding: 5px 12px;
-      white-space: nowrap;
-      outline: none;
-      border: 0px;
-    }
-
-    .send-btn {
-      margin-left: 10px;
-      background: #4684e2;
-      border-radius: 4px;
-      -webkit-box-flex: 0;
-      -ms-flex: 0 0 80px;
-      flex: 0 0 80px;
-      color: #fff;
-      font-size: 14px;
-      text-align: center;
-      height: 32px;
-      line-height: 32px;
-      outline: none;
-      border: 0px;
-      cursor: pointer;
-    }
-  }
-
-  .tab-view {
-    -webkit-box-pack: justify;
-    -ms-flex-pack: justify;
-    justify-content: space-between;
-    font-size: 14px;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    margin: 24px 0;
-
-    .count-text {
-      color: #484848;
-      float: left;
-    }
-
-    .tab-box {
-      color: #5f77a6;
-      -webkit-box-align: center;
-      -ms-flex-align: center;
-      align-items: center;
-
-      .tab-select {
-        color: #152844;
-      }
-
-      span {
-        cursor: pointer;
-      }
-    }
-
-    .line {
-      width: 1px;
-      height: 12px;
-      margin: 0 12px;
-      background: #cedce4;
-    }
-  }
+.desc-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
 }
-
-
-.comments-list {
-  .comment-item {
-    .flex-item {
-      -webkit-box-align: center;
-      -ms-flex-align: center;
-      align-items: center;
-      padding-top: 16px;
-
-      .avator {
-        -webkit-box-flex: 0;
-        -ms-flex: 0 0 40px;
-        flex: 0 0 40px;
-        width: 40px;
-        height: 40px;
-        margin-right: 12px;
-        border-radius: 50%;
-        cursor: pointer;
-      }
-
-      .person {
-        -webkit-box-flex: 1;
-        -ms-flex: 1;
-        flex: 1;
-      }
-
-      .name {
-        color: #152844;
-        font-weight: 600;
-        font-size: 14px;
-        line-height: 22px;
-        height: 22px;
-        cursor: pointer;
-      }
-
-      .time {
-        color: #5f77a6;
-        font-size: 12px;
-        line-height: 16px;
-        height: 16px;
-        margin-top: 2px;
-      }
-
-      .float-right {
-        color: #4684e2;
-        font-size: 14px;
-        float: right;
-
-        span {
-          margin-left: 19px;
-          cursor: pointer;
-        }
-
-        .num {
-          color: #152844;
-          margin-left: 6px;
-          cursor: auto;
-        }
-      }
-    }
-  }
+.desc-meta {
+  color: #6B7280;
+  font-size: 13px;
+  display: flex;
+  gap: 12px;
 }
-
-.comment-content {
-  margin-top: 8px;
-  color: #484848;
-  font-size: 14px;
-  line-height: 22px;
-  padding-bottom: 16px;
-  border-bottom: 1px dashed #cedce4;
-  margin-left: 52px;
-  overflow: hidden;
-  word-break: break-word;
+.desc-body {
+  color: #374151;
+  line-height: 1.8;
+  white-space: pre-wrap;
 }
-
-.infinite-loading-container {
-  clear: both;
-  text-align: center;
-}
-
-.a-price-symbol {
-  top: -0.5em;
-  font-size: 12px;
-}
-
-.a-price {
-  color: #0F1111;
-  font-size: 21px;
-}
+.count-box { margin-top: 12px; }
+.comments .comment-title { font-weight: 600; }
+.comments .comment-content { margin-top: 4px; }
 </style>

@@ -4,7 +4,7 @@ import { get, post } from '/@/utils/http/axios';
 
 /**
  * 商品相关API
- * 校园二手交易平台
+ * 校园闲置物品交易平台
  */
 
 // 商品列表查询参数
@@ -112,70 +112,43 @@ export const deleteProduct = (id: number): Promise<AxiosResponse> => {
 /**
  * 获取我的商品列表
  */
-export const getMyProductList = (userId: number): Promise<AxiosResponse> => {
+export const getMyProductList = (params: any): Promise<AxiosResponse> => {
   return request({
     url: '/index/product/myList',
     method: 'get',
-    params: { userId }
+    params
   })
 }
 
 /**
  * 预约商品
  */
-export const reserveProduct = (productId: number, userId: number): Promise<AxiosResponse> => {
-  return request({
-    url: '/index/product/reserve',
-    method: 'post',
-    data: { productId, userId }
-  })
-}
+export const reserveProductApi = async (data: any): Promise<AxiosResponse> => post<any>({ url: '/index/product/reserve', data })
 
-// 收藏和心愿单相关API
-enum WISH_COLLECT_URL {
-    addWishUser = '/myapp/index/product/addWishUser',
-    addCollectUser = '/myapp/index/product/addCollectUser',
-    getCollectProductList = '/myapp/index/product/getCollectProductList',
-    getWishProductList = '/myapp/index/product/getWishProductList',
-    removeCollectUser = '/myapp/index/product/removeCollectUser',
-    removeWishUser = '/myapp/index/product/removeWishUser'
+// 收藏相关API
+enum COLLECT_URL {
+    addCollectUser = '/index/favorite/add',
+    getCollectProductList = '/index/favorite/list',
+    removeCollectUser = '/index/favorite/remove'
 }
-
-/**
- * 添加商品到心愿单
- */
-export const addProductWishUserApi = async (params: any) => post<any>({ url: WISH_COLLECT_URL.addWishUser, params: params, headers: {} });
 
 /**
  * 添加商品到收藏
  */
-export const addProductCollectUserApi = async (params: any) => post<any>({ url: WISH_COLLECT_URL.addCollectUser, params: params, headers: {} });
+export const addProductCollectUserApi = async (params: any) => post<any>({ url: COLLECT_URL.addCollectUser, params: params, headers: {} });
 
 /**
  * 获取收藏商品列表
  */
-export const getProductCollectListApi = async (params: any) => get<any>({ url: WISH_COLLECT_URL.getCollectProductList, params: params, headers: {} });
-
-/**
- * 获取心愿单商品列表
- */
-export const getProductWishListApi = async (params: any) => get<any>({ url: WISH_COLLECT_URL.getWishProductList, params: params, headers: {} });
+export const getProductCollectListApi = async (params: any) => get<any>({ url: COLLECT_URL.getCollectProductList, params: params, headers: {} });
 
 /**
  * 移除收藏
  */
-export const removeProductCollectUserApi = async (params: any) => post<any>({ url: WISH_COLLECT_URL.removeCollectUser, params: params, headers: {} });
-
-/**
- * 移开心愿单
- */
-export const removeProductWishUserApi = async (params: any) => post<any>({ url: WISH_COLLECT_URL.removeWishUser, params: params, headers: {} });
+export const removeProductCollectUserApi = async (params: any) => post<any>({ url: COLLECT_URL.removeCollectUser, params: params, headers: {} });
 
 // 保留原有API名称作为别名以兼容现有代码
 export const listApi = getProductList;
-export const detailApi = getProductDetail;
-export const addWishUserApi = addProductWishUserApi;
+export const detailApi = (params: any) => getProductDetail(params.id);
 export const addCollectUserApi = addProductCollectUserApi;
-
 export const removeCollectUserApi = removeProductCollectUserApi;
-export const removeWishUserApi = removeProductWishUserApi;

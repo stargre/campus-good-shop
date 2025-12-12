@@ -8,7 +8,6 @@
           <div class="label">头像</div>
           <div class="right-box avatar-box flex-view">
             <img v-if="tData.form && tData.form.avatar" :src="tData.form.avatar" class="avatar">
-            <img v-else :src="AvatarIcon" class="avatar">
             <div class="change-tips flex-view">
                 <a-upload
                   name="file"
@@ -30,23 +29,15 @@
           </div>
         </div>
         <div class="item flex-view">
-          <div class="label">手机号</div>
-          <div class="right-box">
-            <input type="text" v-model="tData.form.mobile" placeholder="请输入邮箱" maxlength="100" class="input-dom web-input">
-          </div>
-        </div>
-        <div class="item flex-view">
           <div class="label">邮箱</div>
           <div class="right-box">
             <input type="text" v-model="tData.form.email" placeholder="请输入邮箱" maxlength="100" class="input-dom web-input">
           </div>
         </div>
         <div class="item flex-view">
-          <div class="label">个人简介</div>
+          <div class="label">手机号</div>
           <div class="right-box">
-          <textarea v-model="tData.form.description" placeholder="请输入简介" maxlength="200" class="intro">
-          </textarea>
-            <p class="tip">限制200字以内</p>
+            <input type="text" v-model="tData.form.mobile" placeholder="请输入手机号" maxlength="20" class="input-dom web-input">
           </div>
         </div>
         <button class="save mg" @click="submit()">保存</button>
@@ -59,9 +50,8 @@
 <script setup>
 import {message} from "ant-design-vue";
 import {detailApi, updateUserInfoApi} from '/@/api/index/user'
-import {BASE_URL} from "/@/store/constants";
+import { getImageUrl } from '/@/utils/url'
 import {useUserStore} from "/@/store";
-import AvatarIcon from '/@/assets/images/avatar.jpg'
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -74,7 +64,8 @@ let tData = reactive({
     nickname: undefined,
     email: undefined,
     mobile: undefined,
-    description: undefined,
+    
+    
   }
 })
 
@@ -97,7 +88,7 @@ const getUserInfo =()=> {
   detailApi({id: userId}).then(res => {
     tData.form = res.data
     if (tData.form.avatar) {
-      tData.form.avatar = BASE_URL  + tData.form.avatar
+      tData.form.avatar = getImageUrl(String(tData.form.avatar))
     }
     loading.value = false
   }).catch(err => {
@@ -119,9 +110,6 @@ const submit =()=> {
   }
   if (tData.form.mobile) {
     formData.append('mobile', tData.form.mobile)
-  }
-  if (tData.form.description) {
-    formData.append('description', tData.form.description)
   }
   updateUserInfoApi({
     id: userId

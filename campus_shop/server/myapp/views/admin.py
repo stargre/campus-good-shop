@@ -8,14 +8,12 @@
 # 从admin子目录导入各个模块（admin是目录，不是文件）
 # 由于admin是目录，需要通过admin目录下的__init__.py导入
 from myapp.views.admin import overview
-from server.myapp.views.admin import product
+from myapp.views.admin import product
 from myapp.views.admin import user
 from myapp.views.admin import order
 from myapp.views.admin import comment
-from myapp.views.admin import classification
-from server.myapp.views.admin import category
+from myapp.views.admin import category
 from myapp.views.admin import notice
-from myapp.views.admin import ad
 from myapp.views.admin import banner
 from myapp.views.admin import record
 from myapp.views.admin import loginLog
@@ -29,13 +27,12 @@ __all__ = [
     'user',
     'order',
     'comment',
-    'classification',
     'category',
     'notice',
-    'ad',
     'banner',
     'record',
     'loginLog',
     'opLog',
     'errorLog',
+    'admin_login',
 ]

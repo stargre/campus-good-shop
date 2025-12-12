@@ -13,10 +13,10 @@
             </div>
           </div>
           <div class="item flex-view">
-            <div class="label">绑定手机</div>
+            <div class="label">绑定邮箱</div>
             <div class="right-box">
-              <input class="input-dom" placeholder="请输入手机号">
-              <a-button type="link" @click="handleBindMobile()">更换</a-button>
+              <input class="input-dom" placeholder="请输入邮箱" v-model="email">
+              <a-button type="link" @click="handleBindEmail()">更换</a-button>
             </div>
           </div>
         </div>
@@ -58,7 +58,7 @@
 <script setup>
 import {message} from "ant-design-vue";
 
-import {updateUserPwdApi} from '/@/api/index/user'
+import {updateUserPwdApi, updateUserInfoApi} from '/@/api/index/user'
 import {useUserStore} from "/@/store";
 
 const router = useRouter();
@@ -67,9 +67,19 @@ const userStore = useUserStore();
 let password = ref('')
 let newPassword1 = ref('')
 let newPassword2 = ref('')
+let email = ref('')
 
-const handleBindMobile = () => {
-  message.info('功能开发中')
+const handleBindEmail = () => {
+  const val = email.value?.trim()
+  if (!val) {
+    message.warn('邮箱不能为空')
+    return
+  }
+  updateUserInfoApi({ user_email: val }).then(() => {
+    message.success('更新成功')
+  }).catch(err => {
+    message.error(err.msg || '更新失败')
+  })
 }
 
 const handleUpdatePwd = () => {
@@ -82,13 +92,10 @@ const handleUpdatePwd = () => {
     return
   }
 
-  let userId = userStore.user_id
-  updateUserPwdApi({
-    id: userId
-  }, {
-    password: password.value,
-    newPassword1: newPassword1.value,
-    newPassword2: newPassword2.value,
+  updateUserPwdApi({}, {
+    old_password: password.value,
+    password: newPassword1.value,
+    repassword: newPassword2.value,
   }).then(res => {
     message.success('修改成功')
   }).catch(err => {

@@ -24,15 +24,15 @@ export const useUserStore = defineStore('user', {
 
       if(result.code === 0) {
         this.$patch((state)=>{
-          state.user_id = result.data.id
-          state.user_name = result.data.username
+          state.user_id = result.data.user_id
+          state.user_name = result.data.user_name
           state.user_token = result.data.token
           console.log('state==>', state)
         })
 
         localStorage.setItem(USER_TOKEN, result.data.token)
-        localStorage.setItem(USER_NAME, result.data.username)
-        localStorage.setItem(USER_ID, result.data.id)
+        localStorage.setItem(USER_NAME, result.data.user_name)
+        localStorage.setItem(USER_ID, result.data.user_id)
       }
 
       return result;
@@ -58,15 +58,15 @@ export const useUserStore = defineStore('user', {
 
       if(result.code === 0) {
         this.$patch((state)=>{
-          state.admin_user_id = result.data.id
-          state.admin_user_name = result.data.username
-          state.admin_user_token = result.data.admin_token
+          state.admin_user_id = result.data.user_id
+          state.admin_user_name = result.data.user_name
+          state.admin_user_token = result.data.token
           console.log('state==>', state)
         })
 
-        localStorage.setItem(ADMIN_USER_TOKEN, result.data.admin_token)
-        localStorage.setItem(ADMIN_USER_NAME, result.data.username)
-        localStorage.setItem(ADMIN_USER_ID, result.data.id)
+        localStorage.setItem(ADMIN_USER_TOKEN, result.data.token)
+        localStorage.setItem(ADMIN_USER_NAME, result.data.user_name)
+        localStorage.setItem(ADMIN_USER_ID, result.data.user_id)
       }
 
       return result;

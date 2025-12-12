@@ -9,7 +9,6 @@ import json
 from django.utils.deprecation import MiddlewareMixin
 
 from myapp import utils
-from myapp.serializers import BOpSerializer
 
 
 class OpLogs(MiddlewareMixin):
@@ -70,10 +69,5 @@ class OpLogs(MiddlewareMixin):
         self.end_time = time.time()  # 记录结束时间
         access_time = self.end_time - self.start_time
         self.data['access_time'] = round(access_time * 1000)  # 转换为毫秒
-
-        #保存操作日志到数据库（当前已注释，可根据需要开启）
-        serializer = BOpSerializer(data=self.data)
-        if serializer.is_valid():
-            serializer.save()
 
         return response

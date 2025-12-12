@@ -53,15 +53,15 @@
         </div>
         <div class="price-view">
           <div class="price-item flex-view">
-            <div class="item-name">菜品总价</div>
+            <div class="item-name">商品总价</div>
             <div class="price-txt">¥{{ pageData.amount }}</div>
           </div>
           <div class="price-item flex-view">
-            <div class="item-name">菜品优惠</div>
+            <div class="item-name">商品优惠</div>
             <div class="price-txt">¥0</div>
           </div>
           <div class="price-item flex-view">
-            <div class="item-name">菜品折扣</div>
+            <div class="item-name">商品折扣</div>
             <div class="price-txt">¥0</div>
           </div>
           <div class="total-price-view flex-view">
@@ -133,7 +133,6 @@
 import {message} from "ant-design-vue";
 import Header from '/@/views/index/components/header.vue'
 import Footer from '/@/views/index/components/footer.vue'
-import DeleteIcon from '/@/assets/images/delete-icon.svg'
 import {createOrder} from '/@/api/index/order'
 import {listApi as listAddressListApi, createApi as createAddressApi} from '/@/api/index/address'
 import {useUserStore} from "/@/store";
@@ -218,23 +217,22 @@ const handleOk = () => {
   myform.value?.validate()
       .then(() => {
         const formData = new FormData()
-        formData.append('user', userStore.user_id)
-        formData.append('default', modal.form.default ? 'true':'false')
+        formData.append('is_default', modal.form.default ? '1':'0')
         if (modal.form.name) {
-          formData.append('name', modal.form.name)
+          formData.append('receiver_name', modal.form.name)
         }
         if (modal.form.mobile) {
-          formData.append('mobile', modal.form.mobile)
+          formData.append('receiver_phone', modal.form.mobile)
         }
         if (modal.form.desc) {
-          formData.append('desc', modal.form.desc)
+          formData.append('receiver_address', modal.form.desc)
         }
         createAddressApi(formData).then(res => {
-          console.log(res)
           hideModal()
           pageData.receiverName = modal.form.name
           pageData.receiverAddress = modal.form.desc
           pageData.receiverPhone = modal.form.mobile
+          listAddressData()
         }).catch(err => {
           message.error(err.msg || '新建失败')
         })
@@ -264,20 +262,18 @@ const onCountChange = (value) => {
 }
 
 const listAddressData = () => {
-  let userId = userStore.user_id
-  listAddressListApi({userId: userId}).then(res => {
-
-    if (res.data.length > 0) {
-      pageData.receiverName = res.data[0].name
-      pageData.receiverPhone = res.data[0].mobile
-      pageData.receiverAddress = res.data[0].desc
-      res.data.forEach(item => {
-        if (item.default) {
-          pageData.receiverName = item.name
-          pageData.receiverPhone = item.mobile
-          pageData.receiverAddress = item.desc
+  listAddressListApi({}).then(res => {
+    const list = Array.isArray(res.data) ? res.data : []
+    if (list.length > 0) {
+      let current = list[0]
+      list.forEach(item => {
+        if (item.is_default === 1) {
+          current = item
         }
       })
+      pageData.receiverName = current.receiver_name
+      pageData.receiverPhone = current.receiver_phone
+      pageData.receiverAddress = current.receiver_address
     }
   }).catch(err => {
     console.log(err)

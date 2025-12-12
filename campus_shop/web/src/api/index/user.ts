@@ -3,11 +3,11 @@ import { get, post } from '/@/utils/http/axios';
 import { UserState } from '/@/store/modules/user/types';
 // import axios from 'axios';
 enum URL {
-    userLogin = 'myapp/index/user/login',
-    userRegister = 'myapp/index/user/register',
-    detail = 'myapp/index/user/info',
-    updateUserPwd = 'myapp/index/user/updatePwd',
-    updateUserInfo = 'myapp/index/user/update'
+  userLogin = '/index/user/login',
+  userRegister = '/index/user/register',
+  detail = '/index/user/info',
+  updateUserPwd = '/index/user/updatePwd',
+  updateUserInfo = '/index/user/update'
 }
 interface LoginRes {
     token: string;
@@ -19,9 +19,23 @@ export interface LoginData {
 }
 
 const detailApi = async (params: any) => get<any>({ url: URL.detail, params: params, data: {}, headers: {} });
-const userLoginApi = async (data: LoginData) => post<any>({ url: URL.userLogin, data, headers: { 'Content-Type': 'multipart/form-data;charset=utf-8' } });
+const userLoginApi = async (data: LoginData) => post<any>({ url: URL.userLogin, data });
 const userRegisterApi = async (data: any) => post<any>({ url: URL.userRegister, params: {}, data: data });
 const updateUserPwdApi = async (params: any, data:any) => post<any>({ url: URL.updateUserPwd, params: params, data:data });
-const updateUserInfoApi = async (params: any,data: any) => post<any>({ url: URL.updateUserInfo, params:params, data: data, headers: { 'Content-Type': 'multipart/form-data;charset=utf-8' } });
+const updateUserInfoApi = async (params?: any, data?: any) => {
+  // 兼容两种调用方式：updateUserInfoApi(formData) 或 updateUserInfoApi(params, formData)
+  const isFormData = (val: any) => typeof FormData !== 'undefined' && val instanceof FormData
+  if (data === undefined) {
+    const payload = params
+    if (isFormData(payload)) {
+      return post<any>({ url: URL.updateUserInfo, data: payload, headers: { 'Content-Type': 'multipart/form-data' } });
+    }
+    return post<any>({ url: URL.updateUserInfo, data: payload });
+  }
+  if (isFormData(data)) {
+    return post<any>({ url: URL.updateUserInfo, params, data, headers: { 'Content-Type': 'multipart/form-data' } });
+  }
+  return post<any>({ url: URL.updateUserInfo, params, data });
+};
 
 export { detailApi, userLoginApi, userRegisterApi, updateUserPwdApi, updateUserInfoApi};

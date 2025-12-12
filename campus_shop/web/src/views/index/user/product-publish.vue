@@ -1,11 +1,11 @@
 <template>
   <div class="content-list">
-    <div class="list-title">发布二手商品</div>
+    <div class="list-title">发布闲置物品</div>
     <div class="publish-form">
       <div class="item flex-view">
         <div class="label required">商品标题</div>
         <div class="right-box">
-          <input type="text" class="input-dom" placeholder="请输入商品标题" v-model="formData.title">
+          <input type="text" class="input-dom" placeholder="请输入商品标题" v-model="formData.product_title">
         </div>
       </div>
       
@@ -22,17 +22,41 @@
               :key="category.id" 
               :value="category.id"
             >
-              {{ category.name }}
+              {{ category.name || category.title || category.category_name }}
             </a-select-option>
           </a-select>
         </div>
       </div>
       
       <div class="item flex-view">
-        <div class="label required">商品价格</div>
+        <div class="label required">商品原价</div>
         <div class="right-box">
           <span class="price-prefix">¥</span>
-          <input type="number" class="input-dom price-input" placeholder="0.00" v-model="formData.price">
+          <input type="number" class="input-dom price-input" placeholder="0.00" v-model="formData.product_o_price">
+        </div>
+      </div>
+      
+      <div class="item flex-view">
+        <div class="label required">商品现价</div>
+        <div class="right-box">
+          <span class="price-prefix">¥</span>
+          <input type="number" class="input-dom price-input" placeholder="0.00" v-model="formData.product_price">
+        </div>
+      </div>
+      
+      <div class="item flex-view">
+        <div class="label required">商品成色</div>
+        <div class="right-box">
+          <a-select 
+            v-model:value="formData.quality" 
+            placeholder="请选择商品成色" 
+            class="select-dom"
+          >
+            <a-select-option value="1">全新</a-select-option>
+            <a-select-option value="2">几乎全新</a-select-option>
+            <a-select-option value="3">轻微使用痕迹</a-select-option>
+            <a-select-option value="4">明显使用痕迹</a-select-option>
+          </a-select>
         </div>
       </div>
       
@@ -45,13 +69,15 @@
               list-type="picture-card"
               :before-upload="beforeUpload"
               :custom-request="customRequest"
-              :multiple="true"
+              :max-count="1"
+              accept="image/jpeg,image/png"
             >
-              <div v-if="fileList.length < 9">
+              <div v-if="fileList.length < 1">
                 <PlusOutlined />
                 <div style="margin-top: 8px">上传图片</div>
               </div>
             </a-upload>
+            
           </div>
         </div>
       </div>
@@ -62,7 +88,7 @@
           <textarea 
             class="textarea-dom" 
             placeholder="请详细描述商品信息，包括成色、使用情况等" 
-            v-model="formData.description"
+            v-model="formData.content"
             rows="6"
           ></textarea>
         </div>
@@ -83,8 +109,14 @@
       </div>
       
       <div class="submit-btn">
-        <button class="cancel" @click="handleCancel">取消</button>
-        <button class="save" @click="handleSubmit">发布</button>
+        <a-button shape="round" size="large" class="cta-btn ghost" @click="handleCancel">
+          <template #icon><RollbackOutlined /></template>
+          取消
+        </a-button>
+        <a-button shape="round" size="large" type="primary" class="cta-btn" @click="handleSubmit">
+          <template #icon><CloudUploadOutlined /></template>
+          发布
+        </a-button>
       </div>
     </div>
   </div>
@@ -94,9 +126,10 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { PlusOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, UploadOutlined, RollbackOutlined, CloudUploadOutlined } from '@ant-design/icons-vue'
 import { getCategoryList } from '/@/api/index/category'
 import { createProduct } from '/@/api/index/product'
+import { uploadImageApi } from '/@/api/index/upload'
 import { useUserStore } from '/@/store'
 
 const router = useRouter()
@@ -104,10 +137,12 @@ const userStore = useUserStore()
 
 // 表单数据
 const formData = ref({
-  title: '',
+  product_title: '',
   category_id: '',
-  price: '',
-  description: '',
+  product_o_price: '',
+  product_price: '',
+  quality: '',
+  content: '',
   location: '',
   contact_info: ''
 })
@@ -140,6 +175,11 @@ const loadCategoryList = () => {
 
 // 图片上传前检查
 const beforeUpload = (file) => {
+  // 检查图片数量限制（仅允许一张）
+  if (fileList.value.length >= 1) {
+    message.error('只能上传一张图片')
+    return false
+  }
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
   if (!isJpgOrPng) {
     message.error('只支持JPG和PNG格式的图片!')
@@ -150,20 +190,77 @@ const beforeUpload = (file) => {
     message.error('图片大小不能超过2MB!')
     return false
   }
-  return false // 阻止默认上传，使用自定义上传
+  // 重要：返回false会阻止文件被添加到fileList，导致customRequest不被调用
+  // 我们需要返回true让Ant Design Upload将文件添加到fileList，然后自定义上传会处理
+  return true
 }
 
 // 自定义上传处理
-const customRequest = ({ onSuccess }) => {
-  // 模拟上传成功，实际项目中这里应该调用上传接口
-  setTimeout(() => {
-    onSuccess('ok')
-  }, 0)
+const customRequest = async ({ file, onSuccess, onError }) => {
+  try {
+    const fd = new FormData()
+    fd.append('file', file.originFileObj || file)
+    console.log('开始上传图片:', file.name, 'uid:', file.uid)
+    const res = await uploadImageApi(fd)
+    console.log('上传响应:', res)
+    
+    // 获取正确的URL路径 - res本身就是APIResponse对象
+    // APIResponse结构: { code: 0, msg: '上传成功', data: { url: '/upload/...' } }
+    const apiResponse = res
+    if (!apiResponse) {
+      throw new Error('服务器未返回响应')
+    }
+    
+    let url = ''
+    if (apiResponse.code === 0 && apiResponse.data && apiResponse.data.url) {
+      // 正确的响应结构
+      url = apiResponse.data.url
+    } else {
+      throw new Error(apiResponse.msg || '上传失败')
+    }
+    
+    if (!url) {
+      throw new Error('服务器未返回图片URL')
+    }
+    
+    console.log('图片上传成功，URL:', url)
+    
+    // 更新文件列表中的URL
+    // 注意：file.uid来自上传器，需要在fileList中找到对应的项
+    const uid = file.uid
+    console.log('开始查找fileList中uid为', uid, '的项, 当前fileList长度:', fileList.value.length)
+    
+    const idx = fileList.value.findIndex(it => {
+      console.log('比较 it.uid:', it.uid, '(类型:', typeof it.uid, ') vs uid:', uid, '(类型:', typeof uid, ')')
+      return String(it.uid) === String(uid)
+    })
+    
+    console.log('找到的索引:', idx)
+    
+    if (idx !== -1) {
+      // 更新文件对象的属性
+      const fileObj = fileList.value[idx]
+      fileObj.url = url
+      fileObj.status = 'done'
+      // 触发响应式更新，确保后续读取到最新url
+      fileList.value = [...fileList.value]
+      console.log('文件列表更新成功，索引:', idx, '文件对象:', fileObj)
+    } else {
+      console.warn('未找到对应的fileList项!')
+    }
+    
+    // 调用成功回调
+    onSuccess && onSuccess({ url })
+  } catch (e) {
+    console.error('图片上传失败:', e)
+    onError && onError(e)
+    message.error('图片上传失败: ' + (e.message || '未知错误'))
+  }
 }
 
 // 表单验证
 const validateForm = () => {
-  if (!formData.value.title) {
+  if (!formData.value.product_title) {
     message.error('请输入商品标题')
     return false
   }
@@ -171,15 +268,23 @@ const validateForm = () => {
     message.error('请选择商品分类')
     return false
   }
-  if (!formData.value.price || formData.value.price <= 0) {
-    message.error('请输入正确的商品价格')
+  if (!formData.value.product_o_price || formData.value.product_o_price <= 0) {
+    message.error('请输入正确的商品原价')
+    return false
+  }
+  if (!formData.value.product_price || formData.value.product_price <= 0) {
+    message.error('请输入正确的商品现价')
+    return false
+  }
+  if (!formData.value.quality) {
+    message.error('请选择商品成色')
     return false
   }
   if (fileList.value.length === 0) {
     message.error('请上传至少一张商品图片')
     return false
   }
-  if (!formData.value.description) {
+  if (!formData.value.content) {
     message.error('请输入商品描述')
     return false
   }
@@ -194,21 +299,50 @@ const validateForm = () => {
 const handleSubmit = async () => {
   if (!validateForm()) return
   
+  // 获取上传的图片URL列表
+  const uploadedImages = fileList.value
+    .map(file => file.url || file.response?.url || file.response?.data?.url)
+    .filter(Boolean)
+  
+  console.log('准备提交的图片列表:', uploadedImages)
+  
+  if (uploadedImages.length === 0) {
+    message.error('请先上传商品图片')
+    return
+  }
+  
   // 准备提交数据
   const submitData = {
-    ...formData.value,
-    image_urls: fileList.value.map(file => file.url || URL.createObjectURL(file.originFileObj))
+    product_title: formData.value.product_title,
+    category_id: formData.value.category_id,
+    product_price: formData.value.product_price,
+    product_o_price: formData.value.product_o_price,
+    quality: formData.value.quality,
+    content: formData.value.content,
+    location: formData.value.location,
+    contact_info: formData.value.contact_info,
+    images: uploadedImages,
+    // 设置默认状态为发布，确保首页能展示
+    product_status: 1
   }
+  
+  console.log('提交数据:', submitData)
   
   try {
     const res = await createProduct(submitData)
+    console.log('发布响应:', res)
     if (res.data) {
       message.success('发布成功')
-      router.push('/user/product-list')
+      const pid = res.data.product_id || res.data.id
+      if (pid) {
+        router.push({ name: 'detail', query: { id: String(pid) } })
+      } else {
+        router.push({ name: 'productList' })
+      }
     }
   } catch (err) {
     console.error('发布失败:', err)
-    message.error('发布失败，请重试')
+    message.error('发布失败: ' + (err.message || '请重试'))
   }
 }
 

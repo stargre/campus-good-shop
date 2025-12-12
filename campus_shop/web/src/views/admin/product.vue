@@ -67,21 +67,12 @@
                 </a-form-item>
               </a-col>
               <a-col span="12">
-                <a-form-item label="分类" name="category">
+                <a-form-item label="分类" name="category_id">
                   <a-select placeholder="请选择"
                             allowClear
                             :options="modal.categoryData"
                             :field-names="{ label: 'category_name', value: 'category_id'}"
                             v-model:value="modal.form.category_id">
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col span="12">
-                <a-form-item label="分类">
-                  <a-select mode="multiple" placeholder="请选择" allowClear v-model:value="modal.form.categorys">
-                    <template v-for="item in modal.categoryData" :key="item.category_id">
-                      <a-select-option :value="item.category_id">{{item.category_name}}</a-select-option>
-                    </template>
                   </a-select>
                 </a-form-item>
               </a-col>
@@ -242,7 +233,7 @@ const modal = reactive({
   },
   rules: {
     product_title: [{ required: true, message: '请输入商品标题', trigger: 'change' }],
-    category: [{ required: true, message: '请选择分类', trigger: 'change' }],
+    category_id: [{ required: true, message: '请选择分类', trigger: 'change' }],
     product_o_price: [{ required: true, message: '请输入商品原价', trigger: 'change' }],
     product_price: [{ required: true, message: '请输入商品现价', trigger: 'change' }],
     product_status: [{ required: true, message: '请选择状态', trigger: 'change' }],
@@ -266,11 +257,16 @@ const getDataList = () => {
   })
       .then((res) => {
         data.loading = false;
-        console.log(res);
-        res.data.forEach((item: any, index: any) => {
+        const list = (res.data && res.data.list) ? res.data.list : []
+        list.forEach((item: any, index: any) => {
           item.index = index + 1;
         });
-        data.dataList = res.data;
+        data.dataList = list;
+        if (res.data && typeof res.data.total === 'number') {
+          // 如果后端返回分页信息，则同步
+          data.page = res.data.page || data.page;
+          data.pageSize = res.data.page_size || data.pageSize;
+        }
       })
       .catch((err) => {
         data.loading = false;
@@ -334,8 +330,8 @@ const handleEdit = (record: any) => {
   modal.form.quality = record.quality;
   modal.form.reject_reason = record.reject_reason;
   // 处理分类
-  if (record.categories && record.categories.length > 0) {
-    modal.form.categorys = record.categories.map((category: any) => category.category_id);
+  if (record.category_id) {
+    modal.form.category = record.category_id;
   }
 };
 
@@ -382,17 +378,16 @@ const handleOk = () => {
         const formData = {
           ...modal.form
         };
+        if (formData.category_id === undefined || formData.category_id === null || formData.category_id === '') {
+          delete (formData as any).category_id
+        } else {
+          (formData as any).category_id = Number(formData.category_id)
+        }
         
-        // 将价格从元转换为分
-        if (formData.product_o_price) {
-          formData.product_o_price = Math.round(formData.product_o_price * 100);
-        }
-        if (formData.product_price) {
-          formData.product_price = Math.round(formData.product_price * 100);
-        }
+        // 价格单位保持为元（整数），无需转换
         
         if (modal.editFlag) {
-          updateApi(formData)
+          updateApi({ product_id: formData.product_id || formData.id }, formData)
               .then((res) => {
                 message.success('更新成功');
                 hideModal();

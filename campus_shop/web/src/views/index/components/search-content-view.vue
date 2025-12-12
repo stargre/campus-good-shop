@@ -37,7 +37,7 @@
 
 <script setup>
 import {listApi as listProductList} from '/@/api/index/product'
-import {BASE_URL} from "/@/store/constants";
+import { getImageUrl } from '/@/utils/url'
 import {useUserStore} from "/@/store";
 
 const userStore = useUserStore()
@@ -85,13 +85,17 @@ const handleDetail = (item) => {
 const getProductList = (data) => {
   tData.loading = true
   listProductList(data).then(res => {
-    res.data.forEach((item, index) => {
+    // 适配后端返回的数据结构：res.data包含list和pagination
+    const productList = res.data.list || [];
+    const pagination = res.data.pagination || {};
+    
+    productList.forEach((item) => {
       if (item.cover) {
-        item.cover = BASE_URL + item.cover
+        item.cover = getImageUrl(item.cover)
       }
     })
-    tData.productData = res.data
-tData.total = tData.productData.length
+    tData.productData = productList
+    tData.total = pagination.total || productList.length
     changePage(1)
     tData.loading = false
   }).catch(err => {

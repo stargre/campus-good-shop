@@ -28,13 +28,15 @@
             </a-popconfirm>
           </div>
           <div class="default-box" v-if="item.default">
-            <img :src="AddressIcon">
+            <CheckCircleOutlined class="default-icon" />
             <span>默认地址</span>
           </div>
         </div>
       </div>
-      <template v-if="!pageData.addressData || pageData.addressData.length <= 0">
-        <a-empty style="width: 100%;margin-top: 200px;"/>
+        <template v-if="!addressList || addressList.length <= 0">
+          <div class="empty-center">
+            <a-empty description="暂无地址" />
+          </div>
       </template>
     </div>
     </a-spin>
@@ -91,7 +93,7 @@ import {FormInstance, message} from 'ant-design-vue';
 import {listApi, deleteApi} from '/@/api/index/address'
 import {createApi, updateApi} from "/@/api/index/address";
 import {useUserStore} from "/@/store";
-import AddressIcon from '/@/assets/images/address-right-icon.svg';
+import { CheckCircleOutlined } from '@ant-design/icons-vue';
 
 const userStore = useUserStore();
 
@@ -115,7 +117,9 @@ const modal = reactive({
     default: false
   },
   rules: {
-    link: [{required: true, message: '请输入', trigger: 'change'}],
+    name: [{required: true, message: '请输入', trigger: 'change'}],
+    mobile: [{required: true, message: '请输入', trigger: 'change'}],
+    desc: [{required: true, message: '请输入', trigger: 'change'}],
   },
 });
 
@@ -127,9 +131,15 @@ onMounted(()=> {
 
 const listAddressData = ()=> {
   loading.value = true
-  let userId = userStore.user_id
-  listApi({userId: userId}).then(res => {
-    pageData.addressData = res.data
+  listApi({}).then(res => {
+    const list = Array.isArray(res.data) ? res.data : []
+    pageData.addressData = list.map(it => ({
+      address_id: it.address_id,
+      name: it.receiver_name,
+      mobile: it.receiver_phone,
+      desc: it.receiver_address,
+      default: it.is_default === 1
+    }))
     loading.value = false
   }).catch(err => {
     console.log(err)
@@ -138,7 +148,7 @@ const listAddressData = ()=> {
 }
 
 const handleDelete =(item)=> {
-  deleteApi({ids: item.id}).then(res => {
+  deleteApi({ address_id: item.address_id }).then(res => {
     listAddressData()
   }).catch(err => {
     console.log(err)
@@ -175,22 +185,20 @@ const handleOk = () => {
   myform.value?.validate()
       .then(() => {
         const formData = new FormData()
-        formData.append('user', userStore.user_id)
-        formData.append('default', modal.form.default ? 'true': 'false')
+        formData.append('is_default', modal.form.default ? '1': '0')
         if (modal.form.name) {
-          formData.append('name', modal.form.name)
+          formData.append('receiver_name', modal.form.name)
         }
         if (modal.form.mobile) {
-          formData.append('mobile', modal.form.mobile)
+          formData.append('receiver_phone', modal.form.mobile)
         }
         if (modal.form.desc) {
-          formData.append('desc', modal.form.desc)
+          formData.append('receiver_address', modal.form.desc)
         }
 
         if (modal.editFlag) {
-          updateApi({
-            id: modal.form.id
-          },formData)
+          formData.append('address_id', String(modal.form.address_id || modal.form.id || ''))
+          updateApi({}, formData)
               .then((res) => {
                 hideModal();
                 listAddressData()
@@ -317,13 +325,13 @@ button {
     margin-top: 4px;
     font-size: 0;
 
-    img {
+    .default-icon {
       position: relative;
       top: -1px;
-      width: 16px;
-      height: 16px;
+      font-size: 16px;
       margin-right: 4px;
       vertical-align: middle;
+      color: #22c55e;
     }
 
     span {

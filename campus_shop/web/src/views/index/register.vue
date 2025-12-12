@@ -9,9 +9,9 @@
 
       <div class="regist-padding">
         <div class="common-input">
-          <img :src="MailIcon" class="left-icon">
+          <MailOutlined class="left-icon" />
           <div class="input-view">
-            <input placeholder="请输入邮箱" v-model="tData.loginForm.username" type="text" class="input">
+            <input placeholder="请输入邮箱" v-model="tData.loginForm.email" type="text" class="input">
             <p class="err-view">
             </p>
           </div>
@@ -19,7 +19,37 @@
       </div>
       <div class="regist-padding">
         <div class="common-input">
-          <img :src="PwdIcon" class="left-icon">
+          <UserOutlined class="left-icon" />
+          <div class="input-view">
+            <input placeholder="请输入用户名" v-model="tData.loginForm.username" type="text" class="input">
+            <p class="err-view">
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="regist-padding">
+        <div class="common-input">
+          <IdcardOutlined class="left-icon" />
+          <div class="input-view">
+            <input placeholder="请输入学号" v-model="tData.loginForm.student_id" type="text" class="input">
+            <p class="err-view">
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="regist-padding">
+        <div class="common-input">
+          <IdcardOutlined class="left-icon" />
+          <div class="input-view">
+            <input placeholder="请输入学院" v-model="tData.loginForm.collage" type="text" class="input">
+            <p class="err-view">
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="regist-padding">
+        <div class="common-input">
+          <LockOutlined class="left-icon" />
           <div class="input-view">
             <input placeholder="请输入密码" v-model="tData.loginForm.password" type="password" class="input">
             <p class="err-view">
@@ -29,7 +59,7 @@
       </div>
       <div class="regist-padding">
         <div class="common-input">
-          <img :src="PwdIcon" class="left-icon">
+          <LockOutlined class="left-icon" />
           <div class="input-view">
             <input placeholder="请再次输入密码" v-model="tData.loginForm.repassword" type="password" class="input">
             <p class="err-view">
@@ -49,14 +79,16 @@
 <script setup lang="ts">
 import {userRegisterApi} from '/@/api/index/user'
 import {message} from "ant-design-vue";
-import MailIcon from '/@/assets/images/mail-icon.svg';
-import PwdIcon from '/@/assets/images/pwd-icon.svg';
+import { MailOutlined, LockOutlined, UserOutlined, IdcardOutlined } from '@ant-design/icons-vue';
 
 const router = useRouter();
 
 const tData = reactive({
   loginForm: {
     username: '',
+    email: '',
+    student_id: '',
+    collage: '',
     password: '',
     repassword: ''
   }
@@ -65,14 +97,20 @@ const tData = reactive({
 const handleRegister = () => {
   console.log('login')
   if(tData.loginForm.username === ''
+    || tData.loginForm.email === ''
+    || tData.loginForm.student_id === ''
+    || tData.loginForm.collage === ''
     || tData.loginForm.password === ''
     || tData.loginForm.repassword === ''){
-    message.warn('不能为空！')
+    message.warn('所有字段不能为空！')
     return;
   }
 
   userRegisterApi({
     username: tData.loginForm.username,
+    email: tData.loginForm.email,
+    student_id: tData.loginForm.student_id,
+    collage: tData.loginForm.collage,
     password: tData.loginForm.password,
     repassword: tData.loginForm.repassword
   }).then(res => {
@@ -116,7 +154,7 @@ div {
 .pc-style {
   position: relative;
   width: 400px;
-  height: 464px;
+  min-height: 560px;
   background: #fff;
   -webkit-box-shadow: 2px 2px 6px #aaa;
   box-shadow: 2px 2px 6px #aaa;
@@ -158,7 +196,8 @@ div {
 
   .left-icon {
     margin-right: 12px;
-    width: 24px;
+    font-size: 20px;
+    color: #6B7280;
   }
 
   .input-view {

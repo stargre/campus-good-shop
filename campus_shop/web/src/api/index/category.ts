@@ -4,7 +4,7 @@ import {get, post} from '/@/utils/http/axios';
 
 /**
  * 分类相关API
- * 校园二手交易平台
+ * 校园闲置物品交易平台
  */
 
 // 分类信息
@@ -50,7 +50,7 @@ export const getCategoryListWithProducts = (): Promise<AxiosResponse> => {
 
 // 分类相关API
 enum CATEGORY_URL {
-    list = '/myapp/index/category/list',
+    list = '/index/category/list',
 }
 
 /**

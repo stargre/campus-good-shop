@@ -16,11 +16,11 @@
       <div class="pay-choose-view" style="">
         <div class="pay-choose-box flex-view">
           <div class="choose-box choose-box-active">
-            <img :src="WxPayIcon">
+            <WechatOutlined class="pay-icon" />
             <span>微信支付</span>
           </div>
           <div class="choose-box">
-            <img :src="AliPayIcon">
+            <AlipayCircleOutlined class="pay-icon" />
             <span>支付宝</span>
           </div>
         </div>
@@ -45,21 +45,36 @@
 <script setup>
 import Header from '/@/views/index/components/header.vue'
 import {message} from "ant-design-vue";
-import WxPayIcon from '/@/assets/images/wx-pay-icon.svg';
-import AliPayIcon from '/@/assets/images/ali-pay-icon.svg';
+import { WechatOutlined, AlipayCircleOutlined } from '@ant-design/icons-vue';
 
 const route = useRoute();
+const router = useRouter();
 
 let ddlTime = ref()
-let amount = ref()
+let amount = ref(0)
+let title = ref('')
 
 onMounted(() => {
-  amount.value = route.query.amount
+  amount.value = Number(route.query.amount || 0)
+  title.value = String(route.query.title || '')
   ddlTime.value = formatDate(new Date().getTime(), 'YY-MM-DD hh:mm:ss')
 })
 
 const handlePay = () => {
-  message.warn('暂无支付功能')
+  const id = Number(route.query.id || 0)
+  if (!id) {
+    message.error('订单ID缺失')
+    return
+  }
+  // 不实现真实支付，直接进入下一阶段：调用后端支付接口并跳转订单页
+  import('/@/api/index/order').then(mod => {
+    mod.payOrder(id).then(() => {
+      message.success('已支付，订单状态已更新')
+      router.push({ name: 'orderView' })
+    }).catch(err => {
+      message.error(err.msg || '支付失败')
+    })
+  })
 }
 const formatDate = (time, format = 'YY-MM-DD hh:mm:ss') => {
   const date = new Date(time)
@@ -166,8 +181,8 @@ const formatDate = (time, format = 'YY-MM-DD hh:mm:ss') => {
       max-width: 300px;
       margin: 0 auto;
 
-      img {
-        height: 40px;
+      .pay-icon {
+        font-size: 40px;
         margin: 24px auto 16px;
         display: block;
       }

@@ -3,7 +3,7 @@ import { AxiosResponse } from 'axios'
 
 /**
  * 订单相关API
- * 校园二手交易平台
+ * 校园闲置物品交易平台
  */
 
 // 订单状态枚举
@@ -55,7 +55,7 @@ interface EvaluateOrderParams {
 /**
  * 获取订单列表
  */
-export const getOrderList = (params: { userId: number; orderStatus?: string }): Promise<AxiosResponse> => {
+export const getOrderList = (params: { orderStatus?: string }): Promise<AxiosResponse> => {
   return request({
     url: '/index/order/list',
     method: 'get',
@@ -77,7 +77,7 @@ export const getOrderDetail = (id: number): Promise<AxiosResponse> => {
 /**
  * 创建订单
  */
-export const createOrder = (data: CreateOrderParams): Promise<AxiosResponse> => {
+export const createOrder = (data: any): Promise<AxiosResponse> => {
   return request({
     url: '/index/order/create',
     method: 'post',
@@ -88,11 +88,11 @@ export const createOrder = (data: CreateOrderParams): Promise<AxiosResponse> => 
 /**
  * 取消订单
  */
-export const cancelOrder = (id: number): Promise<AxiosResponse> => {
+export const cancelOrder = (data: {order_id: number}): Promise<AxiosResponse> => {
   return request({
     url: '/index/order/cancel',
     method: 'post',
-    params: { id }
+    data
   })
 }
 
@@ -103,18 +103,18 @@ export const payOrder = (id: number): Promise<AxiosResponse> => {
   return request({
     url: '/index/order/pay',
     method: 'post',
-    data: { id }
+    data: { order_id: id }
   })
 }
 
 /**
  * 确认收货
  */
-export const confirmReceipt = (id: number): Promise<AxiosResponse> => {
+export const confirmOrderReceipt = (id: number): Promise<AxiosResponse> => {
   return request({
     url: '/index/order/confirm',
     method: 'post',
-    data: { id }
+    data: { order_id: id }
   })
 }
 
@@ -149,11 +149,11 @@ interface Reserve {
 /**
  * 创建预约
  */
-export const createReserve = (productId: number, userId: number): Promise<AxiosResponse> => {
+export const createReserve = (data: {product_id: number, user_id: number}): Promise<AxiosResponse> => {
   return request({
-    url: '/index/reserve/create',
+    url: '/index/product/reserve',
     method: 'post',
-    data: { productId, userId }
+    data
   })
 }
 
@@ -173,8 +173,18 @@ export const getReserveList = (userId: number): Promise<AxiosResponse> => {
  */
 export const cancelReserve = (id: number): Promise<AxiosResponse> => {
   return request({
-    url: '/index/reserve/cancel',
+    url: '/index/product/cancel_reserve',
     method: 'post',
-    data: { id }
+    data: { reserve_id: id }
+  })
+}
+/**
+ * 卖家发货
+ */
+export const deliverOrder = (id: number): Promise<AxiosResponse> => {
+  return request({
+    url: '/index/order/deliver',
+    method: 'post',
+    data: { order_id: id }
   })
 }

@@ -4,7 +4,7 @@
     <div class="page-view">
       <div class="table-operations">
         <a-space>
-          <a-button type="primary" @click="handleAdd">模拟新增</a-button>
+          <a-button type="primary" @click="openCreateModal">新增评论</a-button>
           <a-button @click="handleBatchDelete">批量删除</a-button>
         </a-space>
       </div>
@@ -36,14 +36,33 @@
           </template>
         </template>
       </a-table>
-    </div>
+  </div>
 
+  <!-- 新增评论弹窗 -->
+  <a-modal :visible="createModal.visible" title="新增评论" @ok="handleCreate" @cancel="createModal.visible=false">
+    <a-form :model="createModal.form" :label-col="{ style: { width: '100px' } }">
+      <a-form-item label="商品ID">
+        <a-input v-model:value="createModal.form.product_id" placeholder="请输入商品ID" />
+      </a-form-item>
+      <a-form-item label="用户ID">
+        <a-input v-model:value="createModal.form.user_id" placeholder="请输入用户ID" />
+      </a-form-item>
+      <a-form-item label="评论内容">
+        <a-input v-model:value="createModal.form.comment_content" placeholder="请输入评论内容" />
+      </a-form-item>
+      <a-form-item label="评分(1-10)">
+        <a-input v-model:value="createModal.form.rating" placeholder="请输入评分" />
+      </a-form-item>
+    </a-form>
+  </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import {FormInstance, message} from 'ant-design-vue';
 import {createApi, listApi, deleteApi} from '/@/api/admin/comment';
+import { listApi as listProductsApi } from '/@/api/admin/product'
+import { listApi as listUsersApi } from '/@/api/admin/user'
 import {BASE_URL} from "/@/store/constants";
 import {getFormatTime} from "/@/utils";
 
@@ -70,6 +89,12 @@ const columns = reactive([
     title: '评论内容',
     dataIndex: 'content',
     key: 'content',
+    align: 'center'
+  },
+  {
+    title: '评分',
+    dataIndex: 'rating',
+    key: 'rating',
     align: 'center'
   },
   {
@@ -125,14 +150,16 @@ const getList = () => {
   })
       .then((res) => {
         data.loading = false;
-        console.log(res);
-        res.data.forEach((item: any, index: any) => {
-          item.index = index + 1;
-          if (item.image) {
-            item.image = BASE_URL + item.image
-          }
-        });
-        data.list = res.data;
+        const list = Array.isArray(res.data) ? res.data : []
+        data.list = list.map((item: any, index: any) => ({
+          id: item.comment_id,
+          index: index + 1,
+          username: item.buyer_name,
+          title: item.product_title,
+          content: item.comment_content,
+          rating: item.rating,
+          comment_time: item.comment_time
+        }))
       })
       .catch((err) => {
         data.loading = false;
@@ -148,14 +175,24 @@ const rowSelection = ref({
   },
 });
 
-const handleAdd = () => {
-  // createApi({}).then(res => {
-  //   message.success("模拟新增成功")
-  //   getList()
-  // }).catch(err => {
-  //
-  // })
-};
+  const createModal = reactive({ visible: false, form: { product_id: '', user_id: '', comment_content: '', rating: 8 } })
+  const openCreateModal = () => { createModal.visible = true }
+  const handleCreate = async () => {
+    const f = createModal.form
+    if (!f.product_id || !f.user_id || !f.comment_content) {
+      message.warn('请填写必填项')
+      return
+    }
+    try {
+      await createApi({ product_id: f.product_id, user_id: f.user_id, comment_content: f.comment_content, rating: f.rating, comment_status: 0 })
+      message.success('新增成功')
+      createModal.visible = false
+      getList()
+    } catch (err:any) {
+      console.error('新增失败:', err)
+      message.error(err?.msg || '新增失败')
+    }
+  }
 
 const confirmDelete = (record: any) => {
   console.log('delete', record);

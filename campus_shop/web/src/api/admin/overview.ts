@@ -1,8 +1,8 @@
 import {get, post} from '/@/utils/http/axios';
 
 enum URL {
-    list = '/myapp/admin/overview/count',
-    sysInfo= '/myapp/admin/overview/sysInfo',
+  list = '/admin/overview/count',
+  sysInfo= '/admin/overview/sysInfo',
 }
 
 const listApi = async (params: any) =>

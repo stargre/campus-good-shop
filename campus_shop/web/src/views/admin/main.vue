@@ -3,7 +3,7 @@
     <a-layout-header style="background: #fff; padding: 0">
       <div class="header">
         <img class="header-logo" :src="logo">
-        <span class="header-title">菜品后台管理系统</span>
+        <span class="header-title">校园闲置物品后台管理系统</span>
         <div class="empty"></div>
         <a-button style="margin-right: 24px;" @click="handlePreview">前台预览</a-button>
         <span>管理员[{{ userStore.admin_user_name }}]</span>
@@ -40,10 +40,6 @@
               <folder-outlined/>
             </template>
             <template #title>运营管理</template>
-            <a-menu-item key="ad">
-              <appstore-outlined/>
-              <span>广告管理</span>
-            </a-menu-item>
             <a-menu-item key="notice">
               <appstore-outlined/>
               <span>通知公告</span>
@@ -86,7 +82,7 @@
 </template>
 <script setup lang="ts">
 import {useRouter, useRoute} from 'vue-router'
-import logo from '/@/assets/images/k-logo.png'
+const logo = '/favicon.svg'
 
 import {
   HomeOutlined,

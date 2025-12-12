@@ -3,16 +3,16 @@ import { get, post } from '/@/utils/http/axios';
 import { UserState } from '/@/store/modules/user/types';
 // import axios from 'axios';
 enum URL {
-    login = '/myapp/admin/adminLogin',
-    userList = '/myapp/admin/user/list',
-    detail = '/api/user/detail',
-    create = '/myapp/admin/user/create',
-    update = '/myapp/admin/user/update',
-    delete = '/myapp/admin/user/delete',
-    userLogin = '/api/user/userLogin',
-    userRegister = '/api/user/userRegister',
-    updateUserPwd = '/api/user/updatePwd',
-    updateUserInfo = '/api/user/updateUserInfo'
+    login = '/admin/adminLogin',
+    userList = '/admin/user/list',
+    detail = '/admin/user/info',
+    create = '/admin/user/create',
+    update = '/admin/user/update',
+    delete = '/admin/user/delete',
+    userLogin = '/index/user/login',
+    userRegister = '/index/user/register',
+    updateUserPwd = '/admin/user/updatePwd',
+    updateUserInfo = '/admin/user/update'
 }
 interface LoginRes {
     token: string;
@@ -23,15 +23,15 @@ export interface LoginData {
     password: string;
 }
 
-const loginApi = async (data: LoginData) => post<any>({ url: URL.login, data, headers: { 'Content-Type': 'multipart/form-data;charset=utf-8' } });
+const loginApi = async (data: LoginData) => post<any>({ url: URL.login, data });
 const listApi = async (params: any) => get<any>({ url: URL.userList, params: params, data: {}, headers: {} });
 const detailApi = async (params: any) => get<any>({ url: URL.detail, params: params, data: {}, headers: {} });
-const createApi = async (data: any) => post<any>({ url: URL.create, params: {}, data: data, headers: { 'Content-Type': 'multipart/form-data;charset=utf-8' } });
-const updateApi = async (params: any, data: any) => post<any>({ url: URL.update,params: params, data: data, headers: { 'Content-Type': 'multipart/form-data;charset=utf-8' } });
+const createApi = async (data: any) => post<any>({ url: URL.create, data });
+const updateApi = async (params: any, data: any) => post<any>({ url: URL.update, params, data });
 const deleteApi = async (params: any) => post<any>({ url: URL.delete, params: params, headers: {} });
-const userLoginApi = async (data: LoginData) => post<any>({ url: URL.userLogin, data, headers: { 'Content-Type': 'multipart/form-data;charset=utf-8' } });
-const userRegisterApi = async (data: any) => post<any>({ url: URL.userRegister, params: {}, data: data, headers: { 'Content-Type': 'multipart/form-data;charset=utf-8' } });
+const userLoginApi = async (data: LoginData) => post<any>({ url: URL.userLogin, data });
+const userRegisterApi = async (data: any) => post<any>({ url: URL.userRegister, data });
 const updateUserPwdApi = async (params: any) => post<any>({ url: URL.updateUserPwd, params: params });
-const updateUserInfoApi = async (data: any) => post<any>({ url: URL.updateUserInfo, data: data, headers: { 'Content-Type': 'multipart/form-data;charset=utf-8' } });
+const updateUserInfoApi = async (params: any, data: any) => post<any>({ url: URL.updateUserInfo, params, data });
 
 export { loginApi, listApi, detailApi, createApi, updateApi, deleteApi, userLoginApi, userRegisterApi, updateUserPwdApi, updateUserInfoApi};

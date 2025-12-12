@@ -7,12 +7,9 @@
       <a class="foot-link" @click="handleSource">关于我们</a>
     </div>
     <div class="footer-infos">
-      <span>
-        <a style="color: rgb(174, 174, 174);">鲁ICP备12345678号</a>
-      </span>
-      <span>&nbsp;&nbsp;鲁公网安备123456&nbsp;&nbsp;新出发零字第东123456号&nbsp;&nbsp;作者QQ: 1575100890</span>
+      <span>四川大学 计算机学院  作者QQ: 1575100890</span>
     </div>
-    <div class="address">2022-2023 © 第14小组 · All Rights Reserved</div>
+    <div class="address">2025-2026© 第14小组 · All Rights Reserved</div>
   </div>
 </template>
 

@@ -1,12 +1,20 @@
 <template>
   <div class="content-list">
     <div class="list-title">我的订单</div>
-    <a-tabs default-active-key="1" @change="onTabChange">
+  <a-tabs default-active-key="1" @change="onTabChange">
       <a-tab-pane key="1" tab="全部">
       </a-tab-pane>
       <a-tab-pane key="2" tab="待付款">
       </a-tab-pane>
       <a-tab-pane key="3" tab="已支付">
+      </a-tab-pane>
+      <a-tab-pane key="4" tab="已发货">
+      </a-tab-pane>
+      <a-tab-pane key="5" tab="已退款">
+      </a-tab-pane>
+      <a-tab-pane key="6" tab="已完成">
+      </a-tab-pane>
+      <a-tab-pane key="7" tab="已取消">
       </a-tab-pane>
     </a-tabs>
     <a-spin :spinning="loading" style="min-height: 200px;">
@@ -16,12 +24,12 @@
           <div class="left">
             <span class="text">订单号</span>
             <span class="num mg-4">#</span>
-            <span class="num">{{item.order_number}}</span>
-            <span class="time">{{item.order_time}}</span>
+            <span class="num">{{item.order_id}}</span>
+            <span class="time">{{item.create_time}}</span>
           </div>
           <div class="right">
             <a-popconfirm
-              v-if="item.status==='1'"
+              v-if="item.order_status===0"
               title="确定取消订单？"
               ok-text="是"
               cancel-text="否"
@@ -30,7 +38,8 @@
               <a-button type="primary" size="small" style="margin-right: 24px;">取消</a-button>
             </a-popconfirm>
             <span class="text">订单状态</span>
-            <span class="state">{{item.status==='1'? '待支付': item.status === '2'? '已支付':'已取消'}}</span>
+            <span class="state">{{item.order_status_text}}</span>
+            <a-button v-if="Number(item.order_status)===1 && Number(item.seller_id)===Number(userStore.user_id)" type="primary" size="small" @click="handleDeliver(item)">发货</a-button>
           </div>
         </div>
         <div class="content flex-view">
@@ -49,32 +58,31 @@
             </div>
           </div>
           <div class="right-info">
-            <p class="title">地址信息</p>
-            <p class="name">{{item.receiver_name}}{{item.receiver_phone}}
-            </p>
-            <p class="text mg">{{item.receiver_address}}
-            </p>
+            <p class="title">交易信息</p>
+            <p class="name">卖家：{{item.seller_name || '未知'}}</p>
+            <p class="text mg">买家：{{item.buyer_name || '未知'}}，创建：{{item.create_time}}</p>
             <p class="title">备注信息</p>
-            <p class="text">{{item.remark}}
-            </p>
+            <p class="text">{{item.remark}}</p>
           </div>
         </div>
         <div class="bottom flex-view">
           <div class="left">
-            <span class="text">共{{item.gwcData.length}}件菜品</span>
+            <span class="text">共{{item.gwcData.length}}件商品</span>
           </div>
           <div class="right flex-view">
             <span class="text">总计</span>
-            <span class="num">¥ {{item.amount}}</span>
+            <span class="num">¥ {{item.price}}</span>
             <span class="text">优惠</span>
             <span class="num">¥0</span>
             <span class="text">实际支付</span>
-            <span class="money">¥ {{item.amount}}</span>
+            <span class="money">¥ {{item.price}}</span>
           </div>
         </div>
       </div>
       <template v-if="!orderData || orderData.length <= 0">
-        <a-empty style="width: 100%;margin-top: 200px;"/>
+        <div class="empty-center">
+          <a-empty description="暂无订单" />
+        </div>
       </template>
     </div>
     </a-spin>
@@ -82,10 +90,12 @@
 </template>
 
 <script setup>
-import {message} from "ant-design-vue";
-import {getOrderList as getOrderListApi, cancelOrder} from '/@/api/index/order'
-import {BASE_URL} from "/@/store/constants";
-import {useUserStore} from "/@/store";
+import { ref, onMounted } from 'vue'
+import { message } from 'ant-design-vue'
+import { useRouter, useRoute } from 'vue-router'
+import { getOrderList as getOrderListApi, cancelOrder, deliverOrder } from '/@/api/index/order'
+import { BASE_URL } from '/@/store/constants'
+import { useUserStore } from '/@/store'
 
 const router = useRouter();
 const route = useRoute();
@@ -105,27 +115,37 @@ const onTabChange =(key)=> {
     orderStatus.value = ''
   }
   if (key === '2') {
-    orderStatus.value = '1'
+    orderStatus.value = '0'
   }
   if (key === '3') {
+    orderStatus.value = '1'
+  }
+  if (key === '4') {
     orderStatus.value = '2'
+  }
+  if (key === '5') {
+    orderStatus.value = '5'
+  }
+  if (key === '6') {
+    orderStatus.value = '3'
+  }
+  if (key === '7') {
+    orderStatus.value = '4'
   }
   getOrderList()
 }
 const getOrderList= ()=> {
   loading.value = true
-  let userId = userStore.user_id
-  getOrderListApi({userId: userId, orderStatus: orderStatus.value}).then(res => {
-    res.data.forEach((item, index) => {
-      if (item.cover) {
-        item.cover = BASE_URL + item.cover
-      }
-      if(item.gwc) {
-        let obj = JSON.parse(item.gwc);
-        item.gwcData = obj['gwc']
+  getOrderListApi({orderStatus: orderStatus.value}).then(res => {
+    const list = Array.isArray(res.data) ? res.data : []
+    // 适配后端订单结构到前端展示结构
+    orderData.value = list.map((item)=>{
+      const gwcData = [{ title: item.product_title, price: item.price, count: 1 }]
+      return {
+        ...item,
+        gwcData
       }
     })
-    orderData.value = res.data
     loading.value = false
   }).catch(err => {
     console.log(err)
@@ -138,13 +158,22 @@ const handleDetail =(productId) =>{
   window.open(text.href, '_blank')
 }
 const handleCancel =(item)=> {
-  cancelUserOrderApi({
-    id: item.id
+  cancelOrder({
+    order_id: item.order_id
   }).then(res => {
     message.success('取消成功')
     getOrderList()
   }).catch(err => {
     message.error(err.msg || '取消失败')
+  })
+}
+
+const handleDeliver = (item) => {
+  deliverOrder(item.order_id).then(() => {
+    message.success('已发货')
+    getOrderList()
+  }).catch(err => {
+    message.error(err.msg || '发货失败')
   })
 }
 
@@ -382,3 +411,11 @@ const handleCancel =(item)=> {
 }
 
 </style>
+const handleDeliver = (item) => {
+  deliverOrder(item.order_id).then(()=>{
+    message.success('已发货')
+    getOrderList()
+  }).catch(err=>{
+    message.error(err.msg||'发货失败')
+  })
+}

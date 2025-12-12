@@ -8,8 +8,6 @@ import time
 
 from rest_framework.views import exception_handler
 
-from myapp.serializers import BErrorSerializer
-
 
 def get_timestamp():
     """
@@ -110,18 +108,5 @@ def log_error(request, content):
         request: Django请求对象
         content (str): 错误内容
     """
-    ip = get_ip(request)
-    method = request.method
-    url = request.path
-
-    data = {
-        'ip': ip,
-        'method': method,
-        'url': url,
-        'content': content
-    }
-
-    # 保存错误日志到数据库
-    serializer = ErrorLogSerializer(data=data)
-    if serializer.is_valid():
-        serializer.save()
+    # 注意：BError 表已被删除，该函数仅保留空实现
+    pass

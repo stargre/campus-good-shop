@@ -21,7 +21,9 @@
                   placeholder="请输入登录账号"
                   v-model:value="data.loginForm.username"
                   @pressEnter="handleSubmit">
-                <a-icon slot="prefix" type="user"/>
+                <template #prefix>
+                  <a-icon type="user"/>
+                </template>
               </a-input>
             </a-form-item>
             <a-form-item name="password" label="密码" :colon="false">
@@ -31,7 +33,9 @@
                   placeholder="请输入登录密码"
                   v-model:value="data.loginForm.password"
                   @pressEnter="handleSubmit">
-                <a-icon slot="prefix" type="lock"/>
+                <template #prefix>
+                  <a-icon type="lock"/>
+                </template>
               </a-input>
             </a-form-item>
             <a-form-item style="padding-top: 24px">

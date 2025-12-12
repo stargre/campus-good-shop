@@ -15,6 +15,9 @@ const service: AxiosInstance = axios.create({
   // baseURL: import.meta.env.BASE_URL + '',
   baseURL: BASE_URL,  // API基础URL（已包含/myapp路径）
   timeout: 15000,  // 请求超时时间（15秒）
+  headers: {
+    'Content-Type': 'application/json; charset=utf-8'
+  }
 });
 
 // ==================== 请求拦截器 ====================
@@ -53,13 +56,18 @@ service.interceptors.response.use(
   },
   // 请求失败处理
   (error: any) => {
-    console.log(error.response.status)
-    if(error.response.status == 404) {
+    const status = error?.response?.status
+    const url = error?.config?.url || ''
+    console.log(status)
+    if(status == 404) {
       // 404错误处理（待实现）
       // todo
-    } else if(error.response.status == 403) {
-      // 403错误处理（待实现）
-      // todo
+    } else if(status == 403) {
+      // 403：鉴权失败，针对后台接口提示并引导登录
+      if (typeof window !== 'undefined' && url.includes('/admin/')) {
+        try { (window as any).message?.warn?.('管理员权限验证失败，请重新登录') } catch (_) {}
+        setTimeout(() => { window.location.href = '/admin' }, 50)
+      }
     }
     return Promise.reject(error)
   },

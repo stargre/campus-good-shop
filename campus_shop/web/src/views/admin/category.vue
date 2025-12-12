@@ -10,7 +10,7 @@
       </div>
       <a-table
         size="middle"
-        rowKey="id"
+        rowKey="category_id"
         :loading="data.loading"
         :columns="columns"
         :data-source="data.categoryList"
@@ -195,7 +195,7 @@
 
   const confirmDelete = (record: any) => {
     console.log('delete', record);
-    deleteApi({ ids: record.id })
+    deleteApi({ ids: record.category_id })
       .then((res) => {
         getDataList();
       })
@@ -227,10 +227,11 @@
       ?.validate()
       .then(() => {
         const formData = {
-          ...modal.form
+          category_id: modal.form.category_id || modal.form.id,
+          category_name: modal.form.category_name
         };
         if (modal.editFlag) {
-          updateApi(formData)
+          updateApi({}, formData)
             .then((res) => {
               message.success('更新成功');
               hideModal();

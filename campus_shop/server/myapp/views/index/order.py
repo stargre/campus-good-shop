@@ -1,134 +1,163 @@
 """
-前台订单视图模块 - 校园二手交易平台
+前台订单视图模块 - 校园二手交易平台（修复版）
 提供订单查询、创建、支付、确认收货、取消、评价等功能
-以及商品预约相关功能
 """
 import datetime
 import random
 import string
 
-from rest_framework.decorators import api_view, authentication_classes, throttle_classes
-
-from myapp import utils
+from rest_framework.decorators import api_view, authentication_classes
+from django.db.models import Q
 from myapp.auth.authentication import TokenAuthtication
-from myapp.auth.throttling import MyRateThrottle
 from myapp.handler import APIResponse
-from myapp.models import UserOrder, Reserve, Product
-from myapp.serializers import UserOrderSerializer, ReserveSerializer
+from myapp.models import UserOrder, Reserve, Product, UserInfo, Comment
+from myapp.serializers import UserOrderSerializer, ReserveSerializer, CommentSerializer
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthtication])
 def list_api(request):
     """
-    获取订单列表接口
-    支持按用户ID和订单状态筛选
-    Args:
-        request: Django请求对象，GET参数包含userId和orderStatus
-    Returns:
-        APIResponse: 订单列表
+    获取订单列表接口（修复版）
     """
-    if request.method == 'GET':
-        userId = request.GET.get('userId', -1)
-        orderStatus = request.GET.get('orderStatus', '')
+    try:
+        # 获取当前登录用户
+        token = request.META.get("HTTP_TOKEN", "")
+        users = UserInfo.objects.filter(token=token)
+        if len(users) == 0:
+            return APIResponse(code=1, msg='用户未登录')
+        user = users[0]
         
-        try:
-            # 获取当前登录用户的订单
-            orders = UserOrder.objects.filter(buyer_id=userId)
-            
-            # 如果指定了状态，进行筛选
-            if orderStatus:
-                orders = orders.filter(status=orderStatus)
-                
-            # 按创建时间倒序排列
-            orders = orders.order_by('-create_time')
-            
-            serializer = UserOrderSerializer(orders, many=True)
-            return APIResponse(code=0, msg='查询成功', data=serializer.data)
-        except Exception as e:
-            utils.log_error('订单列表查询失败', str(e))
-            return APIResponse(code=1, msg='查询失败', data=str(e))
+        # 获取查询参数
+        order_status = request.GET.get('orderStatus', '')
+        
+        # 构建查询条件：用户是买家或卖家
+        orders = UserOrder.objects.filter(
+            Q(user_id=user.user_id) | Q(seller_id=user.user_id)
+        )
+        
+        # 状态筛选
+        if order_status:
+            orders = orders.filter(order_status=int(order_status))
+        
+        # 按创建时间倒序排列
+        orders = orders.order_by('-create_time')
+        
+        serializer = UserOrderSerializer(orders, many=True)
+        return APIResponse(code=0, msg='查询成功', data=serializer.data)
+    except Exception as e:
+        print(f"订单列表查询失败: {str(e)}")
+        return APIResponse(code=1, msg='查询失败')
 
 
 @api_view(['POST'])
-@throttle_classes([MyRateThrottle])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([TokenAuthtication])
 def create(request):
     """
-    创建订单接口
-    Args:
-        request: Django请求对象，包含product_id, buyer_id, seller_id, price等
-    Returns:
-        APIResponse: 创建结果
+    创建订单接口（修复版）
     """
     try:
+        # 获取当前登录用户（买家）
+        token = request.META.get("HTTP_TOKEN", "")
+        users = UserInfo.objects.filter(token=token)
+        if len(users) == 0:
+            return APIResponse(code=1, msg='用户未登录')
+        buyer = users[0]
+        
         data = request.data.copy()
         
         # 验证必填参数
-        if not data.get('product_id') or not data.get('buyer_id') or not data.get('seller_id'):
-            return APIResponse(code=1, msg='参数不完整')
-            
-        # 检查商品是否存在且可购买
-        product = Product.objects.get(pk=data['product_id'])
-        if product.status != 1:  # 1表示在售
-            return APIResponse(code=1, msg='商品已下架或不可购买')
-            
-        if product.seller_id == data['buyer_id']:
+        product_id = data.get('product_id')
+        if not product_id:
+            return APIResponse(code=1, msg='商品ID不能为空')
+        
+        # 获取商品
+        product = Product.objects.get(product_id=product_id)
+        
+        # 检查商品状态（1=审核通过）
+        if product.product_status != 1:
+            return APIResponse(code=1, msg='商品不可购买')
+        
+        # 检查是否购买自己的商品
+        if product.user_id.user_id == buyer.user_id:
             return APIResponse(code=1, msg='不能购买自己发布的商品')
-            
-        # 生成订单号
-        data['order_number'] = generate_order_number()
-        data['create_time'] = datetime.datetime.now()
-        data['status'] = 1  # 1表示待支付
-        data['price'] = product.price  # 确保价格与商品一致
+        
+        # 构建订单数据
+        order_data = {
+            'user_id': buyer.user_id,  # 买家
+            'seller_id': product.user_id.user_id,  # 卖家
+            'product_id': product_id,
+            'product_title': product.product_title,
+            'product_image': '',  # 需要从商品图片获取第一张
+            'price': product.product_price,  # 与数据库与前端保持一致（单位：元，整数）
+            'order_status': 0,  # 0=待支付
+        }
+        
+        # 获取商品第一张图片
+        from myapp.models import ProductImage
+        images = ProductImage.objects.filter(product_id=product_id).order_by('sort_order')
+        if images.exists():
+            order_data['product_image'] = images.first().image_url
+        else:
+            order_data['product_image'] = ''
         
         # 创建订单
-        serializer = UserOrderSerializer(data=data)
+        serializer = UserOrderSerializer(data=order_data)
         if serializer.is_valid():
             order = serializer.save()
-            # 更新商品状态为已预订
-            product.status = 2  # 2表示已预订
-            product.save()
+            
+            # 更新商品状态为已售出（或者保留原状态，等支付完成再改）
+            # product.product_status = 3  # 3=已售出
+            # product.save()
+            
             return APIResponse(code=0, msg='创建成功', data=serializer.data)
         else:
+            print("订单序列化错误:", serializer.errors)
             return APIResponse(code=1, msg='创建失败', data=serializer.errors)
             
     except Product.DoesNotExist:
         return APIResponse(code=1, msg='商品不存在')
     except Exception as e:
-        utils.log_error('创建订单失败', str(e))
-        return APIResponse(code=1, msg='创建失败', data=str(e))
-
-def generate_order_number():
-    """
-    生成唯一订单号
-    """
-    # 时间戳 + 随机字符串
-    timestamp = str(utils.get_timestamp())
-    random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    return timestamp + random_str
+        print(f"创建订单失败: {str(e)}")
+        return APIResponse(code=1, msg='创建失败')
 
 
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([TokenAuthtication])
 def cancel_order(request):
     """
-    取消订单接口
+    取消订单接口（修复版）
     """
     try:
-        order_id = request.GET.get('id', -1)
-        order = UserOrder.objects.get(pk=order_id)
+        # 获取当前登录用户
+        token = request.META.get("HTTP_TOKEN", "")
+        users = UserInfo.objects.filter(token=token)
+        if len(users) == 0:
+            return APIResponse(code=1, msg='用户未登录')
+        user = users[0]
+        
+        order_id = request.data.get('order_id')
+        if not order_id:
+            return APIResponse(code=1, msg='订单ID不能为空')
+        
+        order = UserOrder.objects.get(order_id=order_id)
+        
+        # 检查权限：只有买家可以取消订单
+        if order.user_id.user_id != user.user_id:
+            return APIResponse(code=1, msg='无权取消此订单')
         
         # 只有待支付状态的订单可以取消
-        if order.status != 1:
+        if order.order_status != 0:
             return APIResponse(code=1, msg='该状态下订单不能取消')
-            
-        # 更新订单状态
-        order.status = 5  # 5表示已取消
+        
+        # 更新订单状态为已取消
+        order.order_status = 4  # 4=已取消
+        order.cancel_time = datetime.datetime.now()
         order.save()
         
-        # 恢复商品状态为在售
-        product = Product.objects.get(pk=order.product_id)
-        product.status = 1  # 1表示在售
+        # 恢复商品状态为审核通过
+        product = order.product_id
+        product.product_status = 1  # 1=审核通过
         product.save()
         
         return APIResponse(code=0, msg='取消成功', data=UserOrderSerializer(order).data)
@@ -136,205 +165,209 @@ def cancel_order(request):
     except UserOrder.DoesNotExist:
         return APIResponse(code=1, msg='订单不存在')
     except Exception as e:
-        utils.log_error('取消订单失败', str(e))
-        return APIResponse(code=1, msg='取消失败', data=str(e))
+        print(f"取消订单失败: {str(e)}")
+        return APIResponse(code=1, msg='取消失败')
+
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthtication])
 def detail_api(request):
     """
-    获取订单详情接口
+    获取订单详情接口（修复版）
     """
     try:
-        order_id = request.GET.get('id', -1)
-        order = UserOrder.objects.get(pk=order_id)
+        order_id = request.GET.get('id')
+        if not order_id:
+            return APIResponse(code=1, msg='订单ID不能为空')
         
+        order = UserOrder.objects.get(order_id=order_id)
         serializer = UserOrderSerializer(order)
         return APIResponse(code=0, msg='查询成功', data=serializer.data)
         
     except UserOrder.DoesNotExist:
         return APIResponse(code=1, msg='订单不存在')
     except Exception as e:
-        utils.log_error('查询订单详情失败', str(e))
-        return APIResponse(code=1, msg='查询失败', data=str(e))
+        print(f"查询订单详情失败: {str(e)}")
+        return APIResponse(code=1, msg='查询失败')
+
 
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([TokenAuthtication])
 def pay(request):
     """
-    支付订单接口
+    支付订单接口（修复版）
     """
     try:
-        order_id = request.POST.get('id', -1)
-        order = UserOrder.objects.get(pk=order_id)
+        # 获取当前登录用户
+        token = request.META.get("HTTP_TOKEN", "")
+        users = UserInfo.objects.filter(token=token)
+        if len(users) == 0:
+            return APIResponse(code=1, msg='用户未登录')
+        user = users[0]
+        
+        order_id = request.data.get('order_id')
+        if not order_id:
+            return APIResponse(code=1, msg='订单ID不能为空')
+        
+        order = UserOrder.objects.get(order_id=order_id)
+        
+        # 检查权限：只有买家可以支付
+        if order.user_id.user_id != user.user_id:
+            return APIResponse(code=1, msg='无权支付此订单')
         
         # 只有待支付状态的订单可以支付
-        if order.status != 1:
+        if order.order_status != 0:
             return APIResponse(code=1, msg='订单状态不正确')
-            
-        # 模拟支付
-        order.status = 2  # 2表示已支付
+        
+        # 模拟支付：更新状态为已支付
+        order.order_status = 1  # 1=已支付
         order.pay_time = datetime.datetime.now()
         order.save()
+        
+        # 更新商品状态为已售出
+        product = order.product_id
+        product.product_status = 3  # 3=已售出
+        product.save()
         
         return APIResponse(code=0, msg='支付成功', data=UserOrderSerializer(order).data)
         
     except UserOrder.DoesNotExist:
         return APIResponse(code=1, msg='订单不存在')
     except Exception as e:
-        utils.log_error('支付订单失败', str(e))
-        return APIResponse(code=1, msg='支付失败', data=str(e))
+        print(f"支付订单失败: {str(e)}")
+        return APIResponse(code=1, msg='支付失败')
+
 
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([TokenAuthtication])
 def confirm_receipt(request):
     """
-    确认收货接口
+    确认收货接口（修复版）
     """
     try:
-        order_id = request.POST.get('id', -1)
-        order = UserOrder.objects.get(pk=order_id)
+        # 获取当前登录用户
+        token = request.META.get("HTTP_TOKEN", "")
+        users = UserInfo.objects.filter(token=token)
+        if len(users) == 0:
+            return APIResponse(code=1, msg='用户未登录')
+        user = users[0]
+        
+        order_id = request.data.get('order_id')
+        if not order_id:
+            return APIResponse(code=1, msg='订单ID不能为空')
+        
+        order = UserOrder.objects.get(order_id=order_id)
+        
+        # 检查权限：只有买家可以确认收货
+        if order.user_id.user_id != user.user_id:
+            return APIResponse(code=1, msg='无权确认此订单')
         
         # 只有已支付状态的订单可以确认收货
-        if order.status != 2:
+        if order.order_status != 1:
             return APIResponse(code=1, msg='订单状态不正确')
-            
-        order.status = 3  # 3表示已完成
-        order.confirm_time = datetime.datetime.now()
-        order.save()
         
-        # 更新商品状态为已售出
-        product = Product.objects.get(pk=order.product_id)
-        product.status = 3  # 3表示已售出
-        product.save()
+        # 更新状态为已完成
+        order.order_status = 3  # 3=已完成
+        order.receive_time = datetime.datetime.now()  # 修复字段名
+        order.save()
         
         return APIResponse(code=0, msg='确认收货成功', data=UserOrderSerializer(order).data)
         
     except UserOrder.DoesNotExist:
         return APIResponse(code=1, msg='订单不存在')
     except Exception as e:
-        utils.log_error('确认收货失败', str(e))
-        return APIResponse(code=1, msg='确认失败', data=str(e))
+        print(f"确认收货失败: {str(e)}")
+        return APIResponse(code=1, msg='确认失败')
+
 
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([TokenAuthtication])
 def evaluate(request):
     """
-    评价订单接口
+    评价订单接口（修复版）- 使用独立的Comment模型
     """
     try:
-        order_id = request.POST.get('id', -1)
-        content = request.POST.get('content', '')
-        rating = request.POST.get('rating', 5)
+        # 获取当前登录用户
+        token = request.META.get("HTTP_TOKEN", "")
+        users = UserInfo.objects.filter(token=token)
+        if len(users) == 0:
+            return APIResponse(code=1, msg='用户未登录')
+        user = users[0]
         
-        order = UserOrder.objects.get(pk=order_id)
+        order_id = request.data.get('order_id')
+        comment_content = request.data.get('content', '')
+        rating = request.data.get('rating', 10)  # 默认10分
+        
+        if not order_id:
+            return APIResponse(code=1, msg='订单ID不能为空')
+        
+        order = UserOrder.objects.get(order_id=order_id)
+        
+        # 检查权限：只有买家可以评价
+        if order.user_id.user_id != user.user_id:
+            return APIResponse(code=1, msg='只有买家可以评价')
         
         # 只有已完成状态的订单可以评价
-        if order.status != 3:
+        if order.order_status != 3:
             return APIResponse(code=1, msg='订单状态不正确')
-            
-        # 只有买家可以评价
-        if request.user.id != order.buyer_id:
-            return APIResponse(code=1, msg='只有买家可以评价')
-            
-        order.evaluation_content = content
-        order.evaluation_rating = rating
-        order.evaluation_time = datetime.datetime.now()
-        order.status = 4  # 4表示已评价
-        order.save()
         
-        return APIResponse(code=0, msg='评价成功', data=UserOrderSerializer(order).data)
+        # 检查是否已评价过
+        if Comment.objects.filter(order_id=order_id).exists():
+            return APIResponse(code=1, msg='该订单已评价过')
+        
+        # 创建评价
+        comment_data = {
+            'order_id': order.order_id,
+            'user_id': user.user_id,  # 买家
+            'seller_id': order.seller_id.user_id,  # 卖家
+            'comment_content': comment_content,
+            'rating': rating,
+            'comment_status': 0  # 0=正常
+        }
+        
+        serializer = CommentSerializer(data=comment_data)
+        if serializer.is_valid():
+            serializer.save()
+            return APIResponse(code=0, msg='评价成功', data=serializer.data)
+        else:
+            print("评价序列化错误:", serializer.errors)
+            return APIResponse(code=1, msg='评价失败', data=serializer.errors)
         
     except UserOrder.DoesNotExist:
         return APIResponse(code=1, msg='订单不存在')
     except Exception as e:
-        utils.log_error('评价订单失败', str(e))
-        return APIResponse(code=1, msg='评价失败', data=str(e))
+        print(f"评价订单失败: {str(e)}")
+        return APIResponse(code=1, msg='评价失败')
+from django.utils import timezone
+from myapp.models import UserOrder
+from myapp.handler import APIResponse
+from myapp.auth.authentication import TokenAuthtication
+from rest_framework.decorators import api_view, authentication_classes
 
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-def reserve_create(request):
-    """
-    商品预约接口
-    """
+@authentication_classes([TokenAuthtication])
+def deliver(request):
+    """卖家发货：将已支付(1)的订单更新为已发货(2)"""
     try:
-        data = request.data.copy()
-        
-        # 验证必填参数
-        if not data.get('product_id') or not data.get('user_id'):
-            return APIResponse(code=1, msg='参数不完整')
-            
-        # 检查商品是否存在且可预约
-        product = Product.objects.get(pk=data['product_id'])
-        if product.status != 1:  # 1表示在售
-            return APIResponse(code=1, msg='商品已下架或不可预约')
-            
-        if product.seller_id == data['user_id']:
-            return APIResponse(code=1, msg='不能预约自己发布的商品')
-            
-        # 检查是否已经预约
-        existing_reserve = Reserve.objects.filter(product_id=data['product_id'], 
-                                                 user_id=data['user_id'], 
-                                                 status=1).first()  # 1表示有效预约
-        if existing_reserve:
-            return APIResponse(code=1, msg='您已经预约过该商品')
-            
-        # 创建预约
-        data['create_time'] = datetime.datetime.now()
-        data['status'] = 1  # 1表示有效预约
-        
-        serializer = ReserveSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return APIResponse(code=0, msg='预约成功', data=serializer.data)
-        else:
-            return APIResponse(code=1, msg='预约失败', data=serializer.errors)
-            
-    except Product.DoesNotExist:
-        return APIResponse(code=1, msg='商品不存在')
-    except Exception as e:
-        utils.log_error('商品预约失败', str(e))
-        return APIResponse(code=1, msg='预约失败', data=str(e))
+        order_id = request.data.get('order_id')
+        if not order_id:
+            return APIResponse(code=1, msg='订单ID不能为空')
+        try:
+            order = UserOrder.objects.get(order_id=order_id)
+        except UserOrder.DoesNotExist:
+            return APIResponse(code=1, msg='订单不存在')
 
-@api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-def reserve_list(request):
-    """
-    获取我的预约列表接口
-    """
-    try:
-        user_id = request.GET.get('userId', -1)
-        
-        # 获取用户的所有预约
-        reserves = Reserve.objects.filter(user_id=user_id).order_by('-create_time')
-        
-        serializer = ReserveSerializer(reserves, many=True)
-        return APIResponse(code=0, msg='查询成功', data=serializer.data)
-        
-    except Exception as e:
-        utils.log_error('查询预约列表失败', str(e))
-        return APIResponse(code=1, msg='查询失败', data=str(e))
+        if int(order.order_status) != 1:
+            return APIResponse(code=1, msg='仅已支付订单可发货')
 
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-def cancel_reserve(request):
-    """
-    取消预约接口
-    """
-    try:
-        reserve_id = request.POST.get('id', -1)
-        reserve = Reserve.objects.get(pk=reserve_id)
-        
-        # 只有有效预约可以取消
-        if reserve.status != 1:
-            return APIResponse(code=1, msg='预约状态不正确')
-            
-        reserve.status = 2  # 2表示已取消
-        reserve.save()
-        
-        return APIResponse(code=0, msg='取消预约成功', data=ReserveSerializer(reserve).data)
-        
-    except Reserve.DoesNotExist:
-        return APIResponse(code=1, msg='预约不存在')
+        order.order_status = 2
+        if hasattr(order, 'deliver_time'):
+            order.deliver_time = timezone.now()
+        order.update_time = timezone.now()
+        order.save()
+        return APIResponse(code=0, msg='发货成功', data={
+            'order_id': order.order_id,
+            'order_status': order.order_status
+        })
     except Exception as e:
-        utils.log_error('取消预约失败', str(e))
-        return APIResponse(code=1, msg='取消失败', data=str(e))
+        return APIResponse(code=1, msg=f'发货失败: {str(e)}')

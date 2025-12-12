@@ -5,7 +5,7 @@
 
 
 // 本地服务端口
-export const VITE_PORT = 8000;
+export const VITE_PORT = 8081;
 
 // 包依赖分析
 export const ANALYSIS = true;

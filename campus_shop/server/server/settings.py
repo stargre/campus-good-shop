@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'django-insecure-sz@madp0ifx!b)^lg_g!f+5s*w7w_=sjgq-k+erzb%x42$^r!d'
 
 # SECURITY WARNING: 生产环境必须关闭调试模式！
-DEBUG = False
+DEBUG = True
 
 # 允许的主机（生产环境应限制为具体域名）
 ALLOWED_HOSTS = ['*']
@@ -145,3 +145,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_CREDENTIALS = True  # 允许携带凭证
 CORS_ALLOW_ALL_ORIGINS = True  # 允许所有源（生产环境应限制）
 CORS_ALLOW_HEADERS = '*'  # 允许所有请求头
+
+# 在 settings.py 中添加或修改
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',  # 启用API浏览器
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+}

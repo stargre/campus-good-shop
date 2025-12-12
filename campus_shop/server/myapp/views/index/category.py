@@ -17,7 +17,7 @@ def list_api(request):
         APIResponse: 标签列表，按创建时间倒序
     """
     if request.method == 'GET':
-        categorys = Category.objects.all().order_by('-create_time')
+        categorys = Category.objects.all().order_by('-category_create_time')
         serializer = CategorySerializer(categorys, many=True)
         return APIResponse(code=0, msg='查询成功', data=serializer.data)
 
@@ -33,7 +33,7 @@ def detail(request):
     if not category_id:
         return APIResponse(code=1, msg='缺少分类ID')
 
-    category = get_object_or_404(Category, id=category_id)
+    category = get_object_or_404(Category, category_id=category_id)
     serializer = CategorySerializer(category)
     return APIResponse(code=0, msg='查询成功', data=serializer.data)
 

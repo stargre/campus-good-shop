@@ -1,0 +1,229 @@
+-- 设置字符集和 SQL 模式（推荐保留）
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+
+-- 1. user_info（用户主表）
+CREATE TABLE `user_info` (
+  `user_id` int NOT NULL AUTO_INCREMENT,
+  `user_student_id` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_password` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_name` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_collage` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_mobile` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_create_time` datetime(6) NOT NULL,
+  `user_status` int NOT NULL,
+  `user_avart` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `role` varchar(1) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `user_student_id` (`user_student_id`),
+  UNIQUE KEY `user_email` (`user_email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. category（商品分类）
+CREATE TABLE `category` (
+  `category_id` int NOT NULL AUTO_INCREMENT,
+  `category_name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `category_sort_order` int NOT NULL,
+  `category_create_time` datetime(6) NOT NULL,
+  PRIMARY KEY (`category_id`),
+  UNIQUE KEY `category_name` (`category_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 3. product（商品）
+CREATE TABLE `product` (
+  `product_id` int NOT NULL AUTO_INCREMENT,
+  `product_title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `product_o_price` int NOT NULL,
+  `product_price` int NOT NULL,
+  `product_status` int NOT NULL,
+  `quality` int NOT NULL,
+  `reject_reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `create_time` datetime(6) NOT NULL,
+  `update_time` datetime(6) NOT NULL,
+  `content` longtext COLLATE utf8mb4_unicode_ci,
+  `view_count` int NOT NULL,
+  `collect_count` int NOT NULL,
+  `category` int NOT NULL,
+  `user_id` int NOT NULL,
+  `is_reserved` tinyint(1) NOT NULL,
+  `cover_image_id` int DEFAULT NULL,
+  `location` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`product_id`),
+  KEY `product_category_574553b9_fk_category_category_id` (`category`),
+  KEY `product_user_id_091f6d86_fk_user_info_user_id` (`user_id`),
+  CONSTRAINT `product_category_574553b9_fk_category_category_id` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`),
+  CONSTRAINT `product_user_id_091f6d86_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 4. product_image（商品图片）
+CREATE TABLE `product_image` (
+  `image_id` int NOT NULL AUTO_INCREMENT,
+  `image_url` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sort_order` int NOT NULL,
+  `product_id` int NOT NULL,
+  PRIMARY KEY (`image_id`),
+  KEY `product_image_product_id_8b9355c5_fk_product_product_id` (`product_id`),
+  CONSTRAINT `product_image_product_id_8b9355c5_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 5. address（收货地址）
+CREATE TABLE `address` (
+  `address_id` int NOT NULL AUTO_INCREMENT,
+  `receiver_name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `receiver_phone` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `receiver_address` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_default` int NOT NULL,
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`address_id`),
+  KEY `address_user_id_c030de7d_fk_user_info_user_id` (`user_id`),
+  CONSTRAINT `address_user_id_c030de7d_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. cart（购物车）
+CREATE TABLE `cart` (
+  `cart_id` int NOT NULL AUTO_INCREMENT,
+  `add_time` datetime(6) NOT NULL,
+  `product_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`cart_id`),
+  KEY `cart_product_id_508e72da_fk_product_product_id` (`product_id`),
+  KEY `cart_user_id_1361a739_fk_user_info_user_id` (`user_id`),
+  CONSTRAINT `cart_product_id_508e72da_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
+  CONSTRAINT `cart_user_id_1361a739_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 7. favorite（收藏）
+CREATE TABLE `favorite` (
+  `favorite_id` int NOT NULL AUTO_INCREMENT,
+  `create_time` datetime(6) NOT NULL,
+  `product_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`favorite_id`),
+  UNIQUE KEY `favorite_user_id_product_id_80d57210_uniq` (`user_id`,`product_id`),
+  KEY `favorite_product_id_f7399ea1_fk_product_product_id` (`product_id`),
+  CONSTRAINT `favorite_product_id_f7399ea1_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
+  CONSTRAINT `favorite_user_id_8a5f8d2c_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 8. record（浏览记录）
+CREATE TABLE `record` (
+  `record_id` int NOT NULL AUTO_INCREMENT,
+  `create_time` datetime(6) NOT NULL,
+  `product_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`record_id`),
+  KEY `record_product_id_18d0ca92_fk_product_product_id` (`product_id`),
+  KEY `record_user_id_892e847f_fk_user_info_user_id` (`user_id`),
+  CONSTRAINT `record_product_id_18d0ca92_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
+  CONSTRAINT `record_user_id_892e847f_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. user_order（订单）
+CREATE TABLE `user_order` (
+  `order_id` int NOT NULL AUTO_INCREMENT,
+  `product_title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `product_image` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `order_status` int NOT NULL,
+  `create_time` datetime(6) NOT NULL,
+  `pay_time` datetime(6) DEFAULT NULL,
+  `receive_time` datetime(6) DEFAULT NULL,
+  `cancel_time` datetime(6) DEFAULT NULL,
+  `refund_reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `product_id` int NOT NULL,
+  `seller_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`order_id`),
+  KEY `user_order_product_id_5bea5130_fk_product_product_id` (`product_id`),
+  KEY `user_order_seller_id_85e5d92a_fk_user_info_user_id` (`seller_id`),
+  KEY `user_order_user_id_1247599d_fk_user_info_user_id` (`user_id`),
+  CONSTRAINT `user_order_product_id_5bea5130_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
+  CONSTRAINT `user_order_seller_id_85e5d92a_fk_user_info_user_id` FOREIGN KEY (`seller_id`) REFERENCES `user_info` (`user_id`),
+  CONSTRAINT `user_order_user_id_1247599d_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 10. comment（评论）
+CREATE TABLE `comment` (
+  `comment_id` int NOT NULL AUTO_INCREMENT,
+  `comment_content` varchar(1000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `rating` int NOT NULL,
+  `comment_status` int NOT NULL,
+  `create_time` datetime(6) NOT NULL,
+  `seller_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `order_id` int DEFAULT NULL,
+  `comment_time` datetime(6) NOT NULL,
+  `like_count` int NOT NULL,
+  `product_id` int DEFAULT NULL,
+  PRIMARY KEY (`comment_id`),
+  KEY `comment_seller_id_cf712d43_fk_user_info_user_id` (`seller_id`),
+  KEY `comment_user_id_2224f9d1_fk_user_info_user_id` (`user_id`),
+  KEY `comment_product_id_62c0c379_fk_product_product_id` (`product_id`),
+  KEY `comment_order_id_c2e30380_fk_user_order_order_id` (`order_id`),
+  CONSTRAINT `comment_order_id_c2e30380_fk_user_order_order_id` FOREIGN KEY (`order_id`) REFERENCES `user_order` (`order_id`),
+  CONSTRAINT `comment_product_id_62c0c379_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
+  CONSTRAINT `comment_seller_id_cf712d43_fk_user_info_user_id` FOREIGN KEY (`seller_id`) REFERENCES `user_info` (`user_id`),
+  CONSTRAINT `comment_user_id_2224f9d1_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 11. reserve（预约/预定）
+CREATE TABLE `reserve` (
+  `reserve_id` int NOT NULL AUTO_INCREMENT,
+  `reserve_status` int NOT NULL,
+  `create_time` datetime(6) NOT NULL,
+  `finish_time` datetime(6) DEFAULT NULL,
+  `address_id` int DEFAULT NULL,
+  `seller_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `order_id` int DEFAULT NULL,
+  `product_id` int DEFAULT NULL,
+  `remark` longtext COLLATE utf8mb4_unicode_ci,
+  `reserve_time` datetime(6) DEFAULT NULL,
+  `trade_location` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`reserve_id`),
+  KEY `reserve_seller_id_dc063e87_fk_user_info_user_id` (`seller_id`),
+  KEY `reserve_user_id_b2f2d25e_fk_user_info_user_id` (`user_id`),
+  KEY `reserve_product_id_051463b6_fk_product_product_id` (`product_id`),
+  KEY `reserve_address_id_a817ca90_fk_address_address_id` (`address_id`),
+  KEY `reserve_order_id_41925fe4_fk_user_order_order_id` (`order_id`),
+  CONSTRAINT `reserve_address_id_a817ca90_fk_address_address_id` FOREIGN KEY (`address_id`) REFERENCES `address` (`address_id`),
+  CONSTRAINT `reserve_order_id_41925fe4_fk_user_order_order_id` FOREIGN KEY (`order_id`) REFERENCES `user_order` (`order_id`),
+  CONSTRAINT `reserve_product_id_051463b6_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
+  CONSTRAINT `reserve_seller_id_dc063e87_fk_user_info_user_id` FOREIGN KEY (`seller_id`) REFERENCES `user_info` (`user_id`),
+  CONSTRAINT `reserve_user_id_b2f2d25e_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 12. b_login（登录日志）
+CREATE TABLE `b_login` (
+  `b_login_id` int NOT NULL AUTO_INCREMENT,
+  `login_time` datetime(6) NOT NULL,
+  `ip_address` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `login_device` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `login_status` tinyint(1) DEFAULT NULL,
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`b_login_id`),
+  KEY `b_login_user_id_2513cab7_fk_user_info_user_id` (`user_id`),
+  CONSTRAINT `b_login_user_id_2513cab7_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 13. b_notice（公告）
+CREATE TABLE `b_notice` (
+  `b_notice_id` int NOT NULL AUTO_INCREMENT,
+  `notice_content` varchar(1000) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `create_time` datetime(6) NOT NULL,
+  `sort_value` int NOT NULL,
+  PRIMARY KEY (`b_notice_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 恢复设置
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

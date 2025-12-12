@@ -1,5 +1,5 @@
 """
-URL路由配置模块 - 校园二手交易平台
+URL路由配置模块 - 校园闲置物品交易平台
 定义所有API接口的URL路由
 """
 from django.urls import path
@@ -25,6 +25,7 @@ urlpatterns = [
     # 订单管理
     path('admin/order/list', views.admin.order.list_api),
     path('admin/order/detail', views.admin.order.detail),
+    path('admin/order/create', views.admin.order.create),
     path('admin/order/update', views.admin.order.update),
     path('admin/order/delete', views.admin.order.delete),
     # 用户管理
@@ -37,15 +38,21 @@ urlpatterns = [
     # 管理员登录
     path('admin/adminLogin', views.admin.user.admin_login),
     # 系统日志
-    path('admin/errorLog/list', views.admin.errorLog.list_api),
     path('admin/loginLog/list', views.admin.loginLog.list_api),
-    path('admin/opLog/list', views.admin.opLog.list_api),
     # 公告管理
     path('admin/notice/list', views.admin.notice.list_api),
     path('admin/notice/create', views.admin.notice.create),
     path('admin/notice/update', views.admin.notice.update),
     path('admin/notice/delete', views.admin.notice.delete),
-
+    # 评论管理
+    path('admin/comment/list', views.admin.comment.list_api),
+    path('admin/comment/create', views.admin.comment.create),
+    path('admin/comment/update', views.admin.comment.update),
+    path('admin/comment/delete', views.admin.comment.delete),
+    # 浏览记录管理
+    path('admin/record/list', views.admin.record.list_api),
+    path('admin/record/delete', views.admin.record.delete),
+    path('admin/record/deleteAll', views.admin.record.deleteAll),
 
     # ==================== 前台用户API ====================
     # 用户认证
@@ -55,7 +62,7 @@ urlpatterns = [
     path('index/user/update', views.index.user.update),
     path('index/user/updatePwd', views.index.user.updatePwd),
     # 分类管理
-    path('index/category/list_api', views.index.category.list_api),
+    path('index/category/list', views.index.category.list_api),
     path('index/category/detail', views.index.category.detail),
     path('index/category/listWithProducts', views.index.category.listWithProducts),
     # 商品管理
@@ -66,27 +73,27 @@ urlpatterns = [
     path('index/product/delete', views.index.product.delete),
     path('index/product/myList', views.index.product.myList),
     path('index/product/reserve', views.index.product.reserve),
+    path('index/product/cancelReserve', views.index.product.cancel_reserve),
     # 订单管理
     path('index/order/list', views.index.order.list_api),
     path('index/order/detail', views.index.order.detail_api),
     path('index/order/create', views.index.order.create),
     path('index/order/cancel', views.index.order.cancel_order),
+    # 评论管理
+    path('index/comment/create', views.index.comment.create),
+    path('index/comment/list', views.index.comment.list_api),
+    path('index/comment/myList', views.index.comment.list_my_comment),
+    path('index/comment/like', views.index.comment.like),
+    path('index/comment/delete', views.index.comment.delete),
     path('index/order/pay', views.index.order.pay),
     path('index/order/confirm', views.index.order.confirm_receipt),
     path('index/order/evaluate', views.index.order.evaluate),
-    # 预约管理
-    path('index/reserve/create', views.index.order.reserve_create),
-    path('index/reserve/list', views.index.order.reserve_list),
-    path('index/reserve/cancel', views.index.order.cancel_reserve),
+    path('index/order/deliver', views.index.order.deliver),
     # 系统通知
     path('index/notice/list', views.index.notice.list_api),
-    # 标签管理
-    path('index/tag/list_api', views.index.tag.list_api),
-    path('index/tag/detail', views.index.tag.detail),
-    path('index/tag/listWithProducts', views.index.tag.listWithProducts),
     # 搜索功能
-    path('index/search/search', views.index.search.search),
-    path('index/search/hotKeywords', views.index.search.hotKeywords),
+    path('index/search/search', views.index.search),
+    path('index/search/hotKeywords', views.index.hotKeywords),
     # 浏览记录
     path('index/record/list', views.index.record.list_api),
     path('index/record/create', views.index.record.create),
@@ -102,6 +109,18 @@ urlpatterns = [
     path('index/address/create', views.index.address.create),
     path('index/address/update', views.index.address.update),
     path('index/address/delete', views.index.address.delete),
-
+    # 收藏功能
+    path('index/favorite/add', views.index.favorite.add),
+    path('index/favorite/remove', views.index.favorite.remove),
+    path('index/favorite/batchRemove', views.index.favorite.batchRemove),
+    path('index/favorite/list', views.index.favorite.list),
+    # 评论功能
+    path('index/comment/list', views.index.comment.list_api),
+    path('index/comment/listMyComments', views.index.comment.list_my_comment),
+    path('index/comment/create', views.index.comment.create),
+    path('index/comment/like', views.index.comment.like),
+    path('index/comment/delete', views.index.comment.delete),
+    # 文件上传
+    path('index/upload/image', views.index.upload.image),
 
 ]

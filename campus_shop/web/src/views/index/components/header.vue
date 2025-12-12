@@ -1,18 +1,22 @@
 <template>
   <div class="main-bar-view">
     <div class="logo">
-      <img :src="logoImage" class="search-icon" @click="$router.push({name:'portal'})">
+      <img src="/favicon.svg" class="logo-icon" alt="校园闲置物品交易平台" @click="$router.push({name:'portal'})">
     </div>
     <div class="search-entry">
-      <img :src="SearchIcon" class="search-icon">
+      <SearchOutlined class="search-icon" />
       <input placeholder="输入关键词" ref="keywordRef" @keyup.enter="search"/>
     </div>
+    <div class="notice-tab">
+      <a-button type="link" @click="openNotice">公告</a-button>
+    </div>
     <div class="right-view">
-      <a href="/admin" target="__black" type="a-link" style="line-height: 32px;width:60px;">后台入口</a>
+      <a href="/admin" target="__black" class="admin-link">后台入口</a>
+      <button class="login btn hidden-sm" style="margin-right:12px;" @click="goPublish()">发布商品</button>
       <template v-if="userStore.user_token">
         <a-dropdown>
           <a class="ant-dropdown-link" @click="e => e.preventDefault()">
-            <img :src="AvatarIcon" class="self-img">
+            <img :src="userAvatar || AvatarIcon" class="self-img">
           </a>
           <template #overlay>
             <a-menu>
@@ -38,7 +42,7 @@
       </template>
 
       <div class="right-icon" @click="handleOpenGwc">
-        <img style="width: 28px;height: 28px;" :src="MessageIcon">
+        <ShoppingCartOutlined class="cart-icon" />
         <span class="msg-point" style=""></span>
       </div>
       <div>
@@ -60,10 +64,9 @@
                       <div class="content">
                         <p>{{ item.title }} <span style="color: #f00;">￥{{ item.price }}</span></p>
                       </div>
-                      <a-input-number v-model:value="item.count" :min="1" :max="10" style="height: 32px;"/>
-                      <!--                      <span style="line-height: 32px;"></span>-->
-                      <img @click="handleDeleteGwc(item.id)" :src="DeleteIcon"
-                           style="width: 24px;height: 24px;margin-left: 4px;margin-top: 4px; cursor: pointer;"/>
+                      
+                      <DeleteOutlined @click="handleDeleteGwc(item.id)"
+                        class="delete-icon" />
                     </div>
                   </div>
                 </div>
@@ -72,7 +75,7 @@
           </a-spin>
           <div
               style="position: absolute; border-top: 1px #eee dashed; background-color: #fff; display: flex; flex-direction: row;width: 90%; height:44px;bottom: 1px;">
-            <div style="flex:1; line-height: 44px; font-weight: normal;">餐品总额{{ zong }}元</div>
+            <div style="flex:1; line-height: 44px; font-weight: normal;">商品总额{{ zong }}元</div>
             <div @click="handleConfirm"
                  style="line-height: 44px;background-color: #4684e2; color: #fff;padding: 0px 16px; font-weight: bold;cursor: pointer;">
               提交订单
@@ -82,22 +85,29 @@
       </div>
     </div>
   </div>
+  <a-modal v-model:visible="noticeVisible" title="平台公告" :footer="null">
+    <div style="min-height:80px;white-space:pre-line;">{{ currentNotice }}</div>
+    <div style="margin-top:12px;text-align:right;">
+      <a-button type="primary" @click="nextNotice">下一条</a-button>
+    </div>
+  </a-modal>
 </template>
 
 <script setup lang="ts">
+import { ref, watchEffect, onMounted } from 'vue'
 import {listApi} from '/@/api/index/notice'
 import {useUserStore} from "/@/store";
-import logoImage from '/@/assets/images/k-logo.png';
-import SearchIcon from '/@/assets/images/search-icon.svg';
+import { detailApi as userDetailApi } from '/@/api/index/user'
 import AvatarIcon from '/@/assets/images/avatar.jpg';
-import MessageIcon from '/@/assets/images/gwc.png';
-import DeleteIcon from '/@/assets/images/ic-delete.png'
+import { getImageUrl } from '/@/utils/url';
+import { SearchOutlined, ShoppingCartOutlined, DeleteOutlined } from '@ant-design/icons-vue';
 import {USER_TOKEN} from "/@/store/constants";
 
 
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
+const userAvatar = ref('');
 
 const keywordRef = ref()
 
@@ -131,6 +141,20 @@ onMounted(() => {
       localStorage.setItem("gwc", jsonText);
     } else {
       localStorage.setItem("gwc", "");
+    }
+  })
+
+  // 加载用户头像
+  watchEffect(async () => {
+    if (userStore.user_id) {
+      try {
+        const res = await userDetailApi({ id: userStore.user_id })
+        userAvatar.value = getImageUrl(res.data?.avatar || res.data?.user_avart || '')
+      } catch (_) {
+        userAvatar.value = ''
+      }
+    } else {
+      userAvatar.value = ''
     }
   })
 })
@@ -208,6 +232,45 @@ const handleConfirm = () => {
   }
 }
 
+const goPublish = () => {
+  if (userStore.user_token) {
+    router.push({ name: 'productPublish' })
+  } else {
+    router.push({ name: 'login' })
+  }
+}
+
+// 公告弹窗
+const noticeVisible = ref(false)
+const notices = ref<string[]>([])
+const noticeIndex = ref(0)
+const currentNotice = ref('')
+
+const loadNotices = async () => {
+  try {
+    const res: any = await listApi()
+    const list = Array.isArray(res.data) ? res.data : []
+    notices.value = list.map((n: any) => String(n.notice_content || ''))
+    noticeIndex.value = 0
+    currentNotice.value = notices.value[0] || '暂无公告'
+  } catch (e) {
+    notices.value = []
+    currentNotice.value = '暂无公告'
+  }
+}
+
+const openNotice = async () => {
+  if (!notices.value.length) {
+    await loadNotices()
+  }
+  noticeVisible.value = true
+}
+
+const nextNotice = () => {
+  if (!notices.value.length) return
+  noticeIndex.value = (noticeIndex.value + 1) % notices.value.length
+  currentNotice.value = notices.value[noticeIndex.value]
+}
 </script>
 
 <style scoped lang="less">
@@ -236,6 +299,10 @@ const handleConfirm = () => {
     cursor: pointer;
   }
 }
+ .logo-icon {
+   width: 32px;
+   height: 32px;
+ }
 
 .search-entry {
   position: relative;
@@ -247,6 +314,7 @@ const handleConfirm = () => {
   border-radius: 16px;
   font-size: 0;
   cursor: pointer;
+  transition: box-shadow .16s ease;
 
   img {
     max-width: 100%;
@@ -254,7 +322,7 @@ const handleConfirm = () => {
   }
 
   .search-icon {
-    width: 18px;
+    font-size: 18px;
     margin: 7px 8px 0 0;
   }
 
@@ -297,16 +365,21 @@ const handleConfirm = () => {
 
   .right-icon {
     position: relative;
-    width: 24px;
+    width: 36px;
+    height: 36px;
     margin: 4px 0 0 4px;
     cursor: pointer;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0;
-
+    transition: transform .12s ease, box-shadow .16s ease;
+    &:hover { transform: translateY(-1px); }
+  
     span {
       position: absolute;
-      right: -15px;
-      top: -3px;
+      right: -8px;
+      top: -8px;
       font-size: 12px;
       color: #fff;
       background: #4684e2;
@@ -321,11 +394,11 @@ const handleConfirm = () => {
 
     .msg-point {
       position: absolute;
-      right: -4px;
-      top: 0;
+      right: -8px;
+      top: -8px;
       min-width: 8px;
-      width: 10px;
-      height: 10px;
+      width: 14px;
+      height: 14px;
       background: #4684e2;
       border-radius: 50%;
     }
@@ -350,6 +423,39 @@ const handleConfirm = () => {
     line-height: 32px;
     vertical-align: middle;
     margin-left: 32px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    transition: transform .08s ease, box-shadow .16s ease;
+  }
+  .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.10);
+  }
+  .delete-icon {
+    font-size: 24px;
+    margin-left: 4px;
+    margin-top: 4px;
+    cursor: pointer;
+    color: #ff4d4f;
+  }
+  .cart-icon {
+    font-size: 36px;
+    line-height: 36px;
+  }
+  .admin-link {
+    line-height: 32px;
+    display: inline-block;
+    padding: 0 10px;
+    border-radius: 20px;
+    transition: transform .08s ease, box-shadow .16s ease, background-color .2s ease;
+  }
+  .admin-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.10);
+    background: #f3f4f6;
+  }
+  .admin-link:active {
+    transform: scale(0.98);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.12);
   }
 }
 
@@ -418,6 +524,10 @@ const handleConfirm = () => {
     font-size: 16px;
   }
 
+}
+
+.notice-tab {
+  margin: 0 12px;
 }
 
 </style>

@@ -8,22 +8,28 @@
         </a-tree>
       </div>
     </div>
-    <div class="content-right">
-      <div class="top-select-view flex-view">
-        <div class="order-view">
-          <span class="title"></span>
-          <span class="tab"
-                :class="contentData.selectTabIndex===index? 'tab-select':''"
-                v-for="(item,index) in contentData.tabData"
-                :key="index"
-                @click="selectTab(index)">
-            {{ item }}
-          </span>
-          <span :style="{left: contentData.tabUnderLeft + 'px'}" class="tab-underline"></span>
-        </div>
+  <div class="content-right">
+    <div class="top-select-view flex-view">
+      <div class="order-view">
+        <span class="title"></span>
+        <span class="tab"
+              :class="contentData.selectTabIndex===index? 'tab-select':''"
+              v-for="(item,index) in contentData.tabData"
+              :key="index"
+              @click="selectTab(index)">
+          {{ item }}
+        </span>
+        <span :style="{left: contentData.tabUnderLeft + 'px'}" class="tab-underline"></span>
       </div>
+      <div class="sold-toggle">
+        <a-radio-group v-model:value="contentData.soldFilter" @change="onSoldFilterChange" size="small">
+          <a-radio-button value="unsold">未售出</a-radio-button>
+          <a-radio-button value="sold">已售出</a-radio-button>
+        </a-radio-group>
+      </div>
+    </div>
       <a-spin :spinning="contentData.loading" style="min-height: 200px;">
-        <div class="pc-product-list flex-view">
+        <div class="pc-product-list">
           <div v-for="item in contentData.pageData" :key="item.id" class="product-item" @click="handleDetail(item)">
             <div class="img-view">
               <img :src="item.cover" :alt="item.title" />
@@ -50,7 +56,7 @@ import {ref, reactive, onMounted} from 'vue'
 import {useRouter} from 'vue-router'
 import {listApi as listCategoryList} from '/@/api/index/category'
 import {listApi as listProductList} from '/@/api/index/product'
-import {BASE_URL} from "/@/store/constants";
+import { getImageUrl } from '/@/utils/url'
 import {useUserStore} from "/@/store";
 import {message} from "ant-design-vue";
 
@@ -67,21 +73,25 @@ const contentData = reactive({
   selectTabIndex: 0,
   tabUnderLeft: 12,
 
+  soldFilter: 'unsold',
+
   productData: [],
   pageData: [],
 
   page: 1,
   total: 0,
   pageSize: 12,
+  lastFilters: {},
 })
 
 onMounted(() => {
   initSider()
-  getProductList({})
+  // 默认按“最新”排序
+  getProductList({ sort: 'recent' }, 1)
 })
 
 const initSider = () => {
-  contentData.cData.push({key:'-1', title:'全部'})
+  contentData.cData.push({key: -1, title:'全部'})
   listCategoryList().then(res => {
     res.data.forEach(item=>{
       item.key = item.id
@@ -92,7 +102,9 @@ const initSider = () => {
 
 const getSelectedKey = () => {
   if (contentData.selectedKeys.length > 0) {
-    return contentData.selectedKeys[0]
+    const k = contentData.selectedKeys[0]
+    const num = Number(k)
+    return isNaN(num) ? -1 : num
   } else {
     return -1
   }
@@ -100,9 +112,9 @@ const getSelectedKey = () => {
 
 const onSelect = (selectedKeys) => {
   contentData.selectedKeys = selectedKeys
-  console.log(contentData.selectedKeys[0])
-  if (contentData.selectedKeys.length > 0) {
-    getProductList({category: getSelectedKey()})
+  const key = getSelectedKey()
+  if (contentData.selectedKeys.length > 0 && key !== -1) {
+    getProductList({category_id: key})
   } else {
     getProductList({})
   }
@@ -115,10 +127,20 @@ const selectTab = (index) => {
   console.log(contentData.selectTabIndex)
   let sort = (index === 0 ? 'recent' : index === 1 ? 'hot' : 'recommend')
   const data = {sort: sort}
-  if (contentData.selectedKeys.length > 0) {
-    data['category'] = getSelectedKey()
+  const key = getSelectedKey()
+  if (contentData.selectedKeys.length > 0 && key !== -1) {
+    data['category_id'] = key
   }
-  getProductList(data)
+  getProductList(data, 1)
+}
+
+const onSoldFilterChange = () => {
+  const data = {}
+  const key = getSelectedKey()
+  if (contentData.selectedKeys.length > 0 && key !== -1) {
+    data['category_id'] = key
+  }
+  getProductList(data, 1)
 }
 
 const handleDetail = (item) => {
@@ -129,25 +151,42 @@ const handleDetail = (item) => {
 
 // 分页事件
 const changePage = (page) => {
-  contentData.page = page
-  let start = (contentData.page - 1) * contentData.pageSize
-  contentData.pageData = contentData.productData.slice(start, start + contentData.pageSize)
-  console.log('第' + contentData.page + '页')
+  getProductList(contentData.lastFilters || {}, page)
+  console.log('第' + page + '页')
 }
 
-const getProductList = (data) => {
+const getProductList = (data, page = 1) => {
   contentData.loading = true
-  listProductList(data).then(res => {
+  const params = { ...data }
+  // 默认仅显示未售出：product_status==1；切换“已售出”时传 3
+  params['status'] = contentData.soldFilter === 'sold' ? 3 : 1
+  params['page'] = page
+  params['size'] = contentData.pageSize
+
+  // 记录当前过滤条件（不含分页参数）
+  const { page: _p, size: _s, ...filters } = params
+  contentData.lastFilters = { ...filters }
+
+  listProductList(params).then(res => {
     contentData.loading = false
-    res.data.forEach((item, index) => {
-      if (item.cover) {
-        item.cover = BASE_URL + item.cover
+    // 适配后端返回的数据结构：res.data包含list和pagination
+    const productList = res.data.list || [];
+    const pagination = res.data.pagination || {};
+    
+    productList.forEach((item) => {
+      // 兼容不同字段：cover > cover_image
+      const rawCover = item.cover || item.cover_image || ''
+      if (!rawCover) {
+        console.warn('商品缺少cover字段:', item.id || item.product_id, item)
       }
+      item.cover = getImageUrl(rawCover)
+      console.log('处理后的cover:', item.id || item.product_id, item.cover)
     })
-    console.log(res)
-    contentData.productData = res.data
-    contentData.total = res.total || contentData.productData.length
-    changePage(1)
+    console.log('处理后的商品列表:', productList)
+    contentData.productData = productList
+    contentData.pageData = productList
+    contentData.total = pagination.total || productList.length
+    contentData.page = page
   }).catch(err => {
     console.log(err)
     contentData.loading = false
@@ -443,83 +482,81 @@ li {
 
   }
 
-  .pc-product-list {
-    -ms-flex-wrap: wrap;
-    flex-wrap: wrap;
+.pc-product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
 
-    .product-item {
-      min-width: 255px;
-      max-width: 255px;
-      position: relative;
-      flex: 1;
-      margin-right: 20px;
-      height: fit-content;
-      overflow: hidden;
-      margin-top: 26px;
-      margin-bottom: 36px;
-      cursor: pointer;
+  .product-item {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .2s ease;
+  }
+  .product-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  }
 
-      .img-view {
-        //text-align: center;
-        height: 200px;
-        width: 255px;
+  .img-view {
+    height: 180px;
+    width: 100%;
+    overflow: hidden;
 
-        img {
-          height: 200px;
-          width: 255px;
-          margin: 0 auto;
-          background-size: cover;
-          object-fit: cover;
-        }
-      }
-
-      .info-view {
-        //background: #f6f9fb;
-        overflow: hidden;
-        padding: 0 16px;
-
-        .product-name {
-          line-height: 32px;
-          margin-top: 12px;
-          color: #0F1111 !important;
-          font-size: 18px !important;
-          font-weight: 400 !important;
-          font-style: normal !important;
-          text-transform: none !important;
-          text-decoration: none !important;
-        }
-
-        .price {
-          color: #ff7b31;
-          font-size: 20px;
-          line-height: 20px;
-          margin-top: 4px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .translators {
-          color: #6f6f6f;
-          font-size: 12px;
-          line-height: 14px;
-          margin-top: 4px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-      }
-    }
-
-    .no-data {
-      height: 200px;
-      line-height: 200px;
-      text-align: center;
+    img {
       width: 100%;
-      font-size: 16px;
-      color: #152844;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
   }
+
+  .info-view {
+    padding: 12px 16px 16px;
+
+    .product-name {
+      line-height: 20px;
+      margin-top: 4px;
+      color: #0F1111;
+      font-size: 16px;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .price {
+      color: #ef4444;
+      font-size: 18px;
+      line-height: 22px;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    .translators {
+      color: #6B7280;
+      font-size: 12px;
+      line-height: 16px;
+      margin-top: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .no-data {
+    grid-column: 1 / -1;
+    height: 200px;
+    line-height: 200px;
+    text-align: center;
+    width: 100%;
+    font-size: 16px;
+    color: #152844;
+  }
+}
 
   .page-view {
     width: 100%;

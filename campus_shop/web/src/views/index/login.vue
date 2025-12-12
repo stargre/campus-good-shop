@@ -10,7 +10,7 @@
       </div>
       <div class="mail-login" type="login">
         <div class="common-input">
-          <img :src="MailIcon" class="left-icon">
+          <MailOutlined class="left-icon" />
           <div class="input-view">
             <input placeholder="请输入注册邮箱" v-model="pageData.loginForm.username" type="text" class="input">
             <p class="err-view">
@@ -19,7 +19,7 @@
           <!---->
         </div>
         <div class="common-input">
-          <img :src="PwdIcon" class="left-icon">
+          <LockOutlined class="left-icon" />
           <div class="input-view">
             <input placeholder="请输入密码" v-model="pageData.loginForm.password" type="password" class="input">
             <p class="err-view">
@@ -44,8 +44,7 @@
 import {useUserStore} from '/@/store';
 import {message} from "ant-design-vue";
 import LogoIcon from '/@/assets/images/k-logo.png';
-import MailIcon from '/@/assets/images/mail-icon.svg';
-import PwdIcon from '/@/assets/images/pwd-icon.svg';
+import { MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 
 
 const router = useRouter();
@@ -197,7 +196,8 @@ div {
 
   .left-icon {
     margin-right: 12px;
-    width: 24px;
+    font-size: 20px;
+    color: #6B7280;
   }
 
   .input-view {

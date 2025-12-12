@@ -7,12 +7,10 @@
     <div class="product-list">
       <div class="filter-bar flex-view justify-between items-center mb-20">
         <div class="status-filter">
-          <a-radio-group v-model:value="statusFilter"
-            button-style="solid"
-          >
-            <a-radio-button value="">全部</a-radio-button>
-            <a-radio-button value="1">在售中</a-radio-button>
-            <a-radio-button value="0">已售出</a-radio-button>
+          <a-radio-group v-model:value="statusFilter" name="myProductStatus" @change="handleStatusChange">
+            <a-radio value="" :key="'all'">全部</a-radio>
+            <a-radio :value="'1'" :key="'selling'">在售中</a-radio>
+            <a-radio :value="'3'" :key="'sold'">已售出</a-radio>
           </a-radio-group>
         </div>
         <div class="search-box">
@@ -33,8 +31,7 @@
       </div>
       <div v-else-if="productList.length === 0">
         <div class="empty-state">
-          <img src="/empty.png" alt="暂无商品">
-          <p>还没有发布商品，快去发布吧！</p>
+          <a-empty description="还没有发布商品，快去发布吧！" />
         </div>
       </div>
       <div v-else class="list-content">
@@ -46,23 +43,23 @@
         >
           <div class="card-content flex-view">
             <div class="product-image">
-              <img :src="product.cover_image" :alt="product.title" class="image">
-              <span v-if="product.status === 0" class="sold-tag">已售出</span>
+              <img :src="product.cover" :alt="product.title" class="image">
+              <span v-if="product.product_status === 3" class="sold-tag">已售出</span>
             </div>
             <div class="product-info flex-1">
               <div class="product-title">{{ product.title }}</div>
               <div class="product-meta flex-view justify-between items-center mb-10">
-                <div class="category">{{ getCategoryName(product.category_id) }}</div>
-                <div class="price">¥{{ product.price }}</div>
+                <div class="category">{{ product.category_name }}</div>
+                <div class="price">¥{{ product.product_price_yuan }}</div>
               </div>
-              <div class="product-location"><EnvironmentOutlined /> {{ product.location }}</div>
-              <div class="product-time">发布时间：{{ formatTime(product.created_at) }}</div>
+              <div class="product-location"><EnvironmentOutlined /> {{ product.location || product.user_collage || '未知地点' }}</div>
+              <div class="product-time">发布时间：{{ product.create_time }}</div>
               <div class="action-buttons flex-view justify-end mt-20">
-                <a-button type="primary" @click="handleEdit(product)">编辑<a-button>
-                <a-button @click="handleView(product)">查看详情<a-button>
-                <a-button type="default" danger @click="handleDelete(product.id)">删除<a-button>
-                <div v-if="product.status === 1">
-                  <a-button type="default" @click="handleMarkSold(product.id)">标记已售出<a-button>
+                <a-button type="primary" @click="handleEdit(product)">编辑</a-button>
+                <a-button @click="handleView(product)">查看详情</a-button>
+                <a-button type="default" danger @click="handleDelete(product.product_id)">删除</a-button>
+                <div v-if="product.product_status === 1">
+                  <a-button type="default" @click="handleMarkSold(product.product_id)">标记已售出</a-button>
                 </div>
               </div>
             </div>
@@ -76,7 +73,7 @@
           :total="total"
           showSizeChanger
           showQuickJumper
-          showTotal="(total) => `共 ${total} 条`"
+          :showTotal="(total) => `共 ${total} 条`"
           @change="handlePageChange"
           @showSizeChange="handlePageSizeChange"
         />
@@ -86,14 +83,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, Modal } from 'ant-design-vue'
 import { EnvironmentOutlined } from '@ant-design/icons-vue'
 import { getMyProductList, deleteProduct, updateProduct } from '/@/api/index/product'
+import { getImageUrl } from '/@/utils/url'
+import { useUserStore } from '/@/store'
 import { getCategoryList } from '/@/api/index/category'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 // 状态管理
 const loading = ref(false)
@@ -125,17 +125,22 @@ const loadCategoryList = () => {
 // 加载商品列表
 const loadProductList = async () => {
   loading.value = true
+  const params = {
+    page: currentPage.value,
+    size: pageSize.value,
+    status: statusFilter.value || undefined,
+    keyword: searchKeyword.value || undefined
+  }
   try {
-    const params = {
-      page: currentPage.value,
-      page_size: pageSize.value,
-      status: statusFilter.value || undefined,
-      keyword: searchKeyword.value || undefined
-    }
     const res = await getMyProductList(params)
     if (res.data) {
-      productList.value = res.data.items
-      total.value = res.data.total
+      const list = res.data.list || []
+      productList.value = list.map((p) => {
+        p.cover = getImageUrl(p.cover)
+        p.location = p.location || p.user_collage || ''
+        return p
+      })
+      total.value = (res.data.pagination && res.data.pagination.total) || 0
     }
   } catch (err) {
     console.error('加载商品列表失败:', err)
@@ -148,7 +153,7 @@ const loadProductList = async () => {
 // 根据分类ID获取分类名称
 const getCategoryName = (categoryId) => {
   const category = categoryList.value.find(cat => cat.id === categoryId)
-  return category ? category.name : '未知分类'
+  return category ? (category.name || category.title || category.category_name) : '未知分类'
 }
 
 // 格式化时间
@@ -191,23 +196,17 @@ const handlePageSizeChange = (current, pageSize) => {
 
 // 发布商品
 const handlePublish = () => {
-  router.push('/user/product-publish')
+  router.push({ name: 'productPublish' })
 }
 
 // 编辑商品
 const handleEdit = (product) => {
-  router.push({
-    path: '/user/product-edit',
-    query: { id: product.id }
-  })
+  router.push({ name: 'productEdit', query: { id: product.product_id } })
 }
 
 // 查看详情
 const handleView = (product) => {
-  router.push({
-    path: '/detail',
-    query: { id: product.id }
-  })
+  router.push({ name: 'detail', query: { id: product.product_id } })
 }
 
 // 删除商品
@@ -239,7 +238,7 @@ const handleMarkSold = (productId) => {
     cancelText: '取消',
     onOk: async () => {
       try {
-        await updateProduct(productId, { status: 0 })
+        await updateProduct(productId, { status: 3 })
         message.success('操作成功')
         loadProductList()
       } catch (err) {

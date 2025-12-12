@@ -35,8 +35,29 @@ export default ({ command }: ConfigEnv): UserConfig => {
     // plugins
     plugins: createVitePlugins(isBuild),
 
-    // css
-    css: {},
+    css: {
+      preprocessorOptions: {
+        less: {
+          javascriptEnabled: true,
+          modifyVars: {
+            'primary-color': '#3B82F6',
+            'link-color': '#3B82F6',
+            'success-color': '#22c55e',
+            'warning-color': '#f59e0b',
+            'error-color': '#ef4444',
+            'heading-color': '#0F172A',
+            'text-color': '#111827',
+            'text-color-secondary': '#6B7280',
+            'border-color-base': '#E5E7EB',
+            'component-background': '#FFFFFF',
+            'layout-body-background': '#F7F8FA',
+            'border-radius-base': '10px',
+            'font-size-base': '14px',
+            'box-shadow-base': '0 8px 24px rgba(0,0,0,0.07)'
+          }
+        }
+      }
+    },
 
     // server
     server: {
