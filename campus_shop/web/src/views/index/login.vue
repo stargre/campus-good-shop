@@ -12,7 +12,7 @@
         <div class="common-input">
           <MailOutlined class="left-icon" />
           <div class="input-view">
-            <input placeholder="请输入注册邮箱" v-model="pageData.loginForm.username" type="text" class="input">
+            <input placeholder="请输入用户名/邮箱/学号" v-model="pageData.loginForm.username" type="text" class="input">
             <p class="err-view">
             </p>
           </div>
@@ -34,7 +34,7 @@
       </div>
       <div class="operation">
         <a @click="handleCreateUser" class="forget-pwd" style="text-align: left;">注册新帐号</a>
-        <a class="forget-pwd" style="text-align: right;">忘记密码？</a>
+        <a @click="router.push({name:'forgot'})" class="forget-pwd" style="text-align: right;">忘记密码？</a>
       </div>
     </div>
   </div>

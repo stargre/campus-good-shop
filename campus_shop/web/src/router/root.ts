@@ -22,6 +22,16 @@ const constantRouterMap = [
         component: () => import('/@/views/index/register.vue')
       },
       {
+        path: 'forgot',
+        name: 'forgot',
+        component: () => import('/@/views/index/forgot-password.vue')
+      },
+      {
+        path: 'reset-password',
+        name: 'resetPassword',
+        component: () => import('/@/views/index/reset-password.vue')
+      },
+      {
         path: 'portal',
         name: 'portal',
         component: () => import('/@/views/index/portal.vue')

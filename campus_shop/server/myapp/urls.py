@@ -61,6 +61,10 @@ urlpatterns = [
     path('index/user/info', views.index.user.info),
     path('index/user/update', views.index.user.update),
     path('index/user/updatePwd', views.index.user.updatePwd),
+    # 找回密码
+    path('index/user/passwordResetRequest', views.index.user.passwordResetRequest),
+    path('index/user/passwordResetVerify', views.index.user.passwordResetVerify),
+    path('index/user/passwordResetConfirm', views.index.user.passwordResetConfirm),
     # 分类管理
     path('index/category/list', views.index.category.list_api),
     path('index/category/detail', views.index.category.detail),

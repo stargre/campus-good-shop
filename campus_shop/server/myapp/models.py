@@ -37,6 +37,22 @@ class UserInfo(models.Model):
         verbose_name = '用户信息表'
         verbose_name_plural = verbose_name
 
+
+# 密码找回表（存放重置令牌）
+class PasswordReset(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(UserInfo, verbose_name='关联用户', on_delete=models.CASCADE, db_column='user_id')
+    token = models.CharField(max_length=128, verbose_name='重置令牌', unique=True)
+    code = models.CharField(max_length=10, verbose_name='验证码', null=True, blank=True)
+    created_at = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
+    expire_at = models.DateTimeField(verbose_name='过期时间', null=True, blank=True)
+    used = models.BooleanField(verbose_name='是否已使用', default=False)
+
+    class Meta:
+        db_table = 'password_reset'
+        verbose_name = '密码找回令牌表'
+        verbose_name_plural = verbose_name
+
 # 商品分类表
 class Category(models.Model):
     """

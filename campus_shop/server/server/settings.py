@@ -157,3 +157,13 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ],
 }
+
+# 开发时将邮件输出到控制台，便于调试找回密码流程；上线请替换为真实 SMTP 配置
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Example SMTP settings (uncomment and configure for production)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.example.com'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'your@example.com'
+# EMAIL_HOST_PASSWORD = 'password'
+# EMAIL_USE_TLS = True

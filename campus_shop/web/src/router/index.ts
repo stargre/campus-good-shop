@@ -8,7 +8,8 @@ import root from './root';  // 路由定义
 import { ADMIN_USER_TOKEN, USER_TOKEN } from '/@/store/constants'  // Token常量
 
 // 路由权限白名单（无需登录即可访问的页面）
-const allowList = ['adminLogin', 'login', 'register', 'portal', 'search', 'detail', '403', '404']
+// 新增 'forgot' 和 'resetPassword'，允许未登录用户访问找回/重置密码页面
+const allowList = ['adminLogin', 'login', 'register', 'portal', 'search', 'detail', 'forgot', 'resetPassword', '403', '404']
 // 前台用户登录地址
 const loginRoutePath = '/index/login'
 // 后台管理员登录地址
