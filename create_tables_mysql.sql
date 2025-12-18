@@ -102,21 +102,6 @@ CREATE TABLE `product_image` (
   CONSTRAINT `product_image_product_id_8b9355c5_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Table structure for table `cart`
---
-DROP TABLE IF EXISTS `cart`;
-CREATE TABLE `cart` (
-  `cart_id` int NOT NULL AUTO_INCREMENT,
-  `add_time` datetime(6) NOT NULL,
-  `product_id` int NOT NULL,
-  `user_id` int NOT NULL,
-  PRIMARY KEY (`cart_id`),
-  KEY `cart_product_id_508e72da_fk_product_product_id` (`product_id`),
-  KEY `cart_user_id_1361a739_fk_user_info_user_id` (`user_id`),
-  CONSTRAINT `cart_product_id_508e72da_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
-  CONSTRAINT `cart_user_id_1361a739_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `favorite`
@@ -246,21 +231,6 @@ CREATE TABLE `b_notice` (
   PRIMARY KEY (`b_notice_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Table structure for table `b_login`
---
-DROP TABLE IF EXISTS `b_login`;
-CREATE TABLE `b_login` (
-  `b_login_id` int NOT NULL AUTO_INCREMENT,
-  `login_time` datetime(6) NOT NULL,
-  `ip_address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `login_device` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `login_status` tinyint(1) DEFAULT NULL,
-  `user_id` int NOT NULL,
-  PRIMARY KEY (`b_login_id`),
-  KEY `b_login_user_id_2513cab7_fk_user_info_user_id` (`user_id`),
-  CONSTRAINT `b_login_user_id_2513cab7_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `password_reset`

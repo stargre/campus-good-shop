@@ -42,11 +42,6 @@ const constantRouterMap = [
         component: () => import('/@/views/index/detail.vue')
       },
       {
-        path: 'confirm',
-        name: 'confirm',
-        component: () => import('/@/views/index/confirm.vue')
-      },
-      {
         path: 'pay',
         name: 'pay',
         component: () => import('/@/views/index/pay.vue')
@@ -151,7 +146,6 @@ const constantRouterMap = [
     
       { path: 'category', name: 'category', component: () => import('/@/views/admin/category.vue') },
       { path: 'notice', name: 'notice', component: () => import('/@/views/admin/notice.vue') },
-      { path: 'loginLog', name: 'loginLog', component: () => import('/@/views/admin/login-log.vue') },
       { path: 'opLog', name: 'opLog', component: () => import('/@/views/admin/op-log.vue') },
       { path: 'errorLog', name: 'errorLog', component: () => import('/@/views/admin/error-log.vue') },
       { path: 'sysInfo', name: 'sysInfo', component: () => import('/@/views/admin/sys-info.vue') },

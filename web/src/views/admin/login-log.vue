@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { FormInstance, message } from 'ant-design-vue';
-import { listLoginLogApi } from '/@/api/admin/log';
+// login-log UI removed: 登录日志页面已移除；相关接口不可用。
 
 
 const columns = reactive([
@@ -78,26 +78,15 @@ const data = reactive({
 
 
 onMounted(() => {
-  getDataList();
+  // 登录日志功能已移除，禁用数据加载
+  data.dataList = []
+  data.loading = false
 });
 
 const getDataList = () => {
-  data.loading = true;
-  listLoginLogApi({
-    keyword: data.keyword,
-  })
-      .then((res) => {
-        data.loading = false;
-        console.log(res);
-        res.data.forEach((item: any, index: any) => {
-          item.index = index + 1;
-        });
-        data.dataList = res.data;
-      })
-      .catch((err) => {
-        data.loading = false;
-        console.log(err);
-      });
+  // 登录日志功能已移除，禁用数据加载
+  data.dataList = []
+  data.loading = false
 };
 
 

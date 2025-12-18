@@ -135,21 +135,6 @@ class Address(models.Model):
         verbose_name = '用户地址表'
         verbose_name_plural = verbose_name
 
-# 购物车表
-class Cart(models.Model):
-    """
-    购物车模型
-    用于存储用户的购物车信息
-    """
-    cart_id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(UserInfo, verbose_name='关联的用户ID', on_delete=models.CASCADE, db_column='user_id')
-    product_id = models.ForeignKey(Product, verbose_name='关联的商品ID', on_delete=models.CASCADE, db_column='product_id')
-    add_time = models.DateTimeField(verbose_name='加入购物车时间', default=datetime.datetime.now)
-    
-    class Meta:
-        db_table = 'cart'
-        verbose_name = '用户购物车表'
-        verbose_name_plural = verbose_name
 
 # 订单表
 class UserOrder(models.Model):
@@ -261,23 +246,7 @@ class BNotice(models.Model):
         verbose_name = '系统公告表'
         verbose_name_plural = verbose_name
 
-# 登录日志表
-class BLogin(models.Model):
-    """
-    登录日志模型
-    用于存储用户登录日志
-    """
-    b_login_id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(UserInfo, verbose_name='用户ID', on_delete=models.CASCADE, db_column='user_id')
-    login_time = models.DateTimeField(verbose_name='登录时间', default=datetime.datetime.now)
-    ip_address = models.CharField(max_length=50, verbose_name='登录IP地址', null=True, blank=True)
-    login_device = models.CharField(max_length=255, verbose_name='登录设备信息', null=True, blank=True)
-    login_status = models.BooleanField(verbose_name='登录是否成功', null=True, blank=True)
-    
-    class Meta:
-        db_table = 'b_login'
-        verbose_name = '用户登录日志表'
-        verbose_name_plural = verbose_name
+
 
 # 收藏表
 class Favorite(models.Model):

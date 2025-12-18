@@ -7,7 +7,7 @@ from django.db import models
 from rest_framework.decorators import api_view, authentication_classes
 from myapp.auth.authentication import AdminTokenAuthtication
 from myapp.handler import APIResponse
-from myapp.models import UserInfo, Product, UserOrder, BNotice, BLogin
+from myapp.models import UserInfo, Product, UserOrder, BNotice
 
 
 @api_view(['GET'])

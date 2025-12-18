@@ -25,7 +25,11 @@
           </div>
         </div>
         <div class="tips">请选择任意一种支付方式</div>
-        <button class="pay-btn pay-btn-active" @click="handlePay()">确认支付</button>
+        <div style="text-align:center">
+          <button class="pay-btn pay-btn-active" @click="handlePay()">确认支付</button>
+          <button class="back-btn" @click="handleBack()" style="margin-left:12px;">返回原界面</button>
+          <button class="cancel-btn" @click="handleCancelPay()" style="margin-left:12px;">取消支付</button>
+        </div>
       </div>
       <div class="pay-qr-view" style="display: none;">
         <div class="loading-tip" style="">正在生成安全支付二维码</div>
@@ -73,6 +77,27 @@ const handlePay = () => {
       router.push({ name: 'orderView' })
     }).catch(err => {
       message.error(err.msg || '支付失败')
+    })
+  })
+}
+
+const handleBack = () => {
+  // 返回上一页或回到订单页
+  router.back()
+}
+
+const handleCancelPay = () => {
+  const id = Number(route.query.id || 0)
+  if (!id) {
+    message.error('订单ID缺失')
+    return
+  }
+  import('/@/api/index/order').then(mod => {
+    mod.cancelOrder({ order_id: id }).then(() => {
+      message.success('订单已取消')
+      router.push({ name: 'orderView' })
+    }).catch(err => {
+      message.error(err.msg || '取消失败')
     })
   })
 }

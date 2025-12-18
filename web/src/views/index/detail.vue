@@ -50,17 +50,6 @@
               <a-button
                 size="large"
                 shape="round"
-                class="cta-btn ghost"
-                @click="handleToggleCart"
-              >
-                <template #icon>
-                  <component :is="isInCart ? DeleteOutlined : ShoppingCartOutlined" />
-                </template>
-                {{ isInCart ? '移除购物车' : '加入购物车' }}
-              </a-button>
-              <a-button
-                size="large"
-                shape="round"
                 :class="['cta-btn', isFavorited ? 'favored' : 'ghost']"
                 @click="handleToggleFavorite"
               >
@@ -130,6 +119,12 @@
             placeholder="请选择预约日期"
             format="YYYY-MM-DD"
           />
+          <TimePicker
+            v-model:value="reserveForm.reserve_time_time"
+            style="width: 100%; margin-top: 8px;"
+            placeholder="请选择预约时间（可选）"
+            format="HH:mm"
+          />
         </div>
         <div class="form-item">
           <label>交易地点：</label>
@@ -153,6 +148,7 @@
 <script setup>
 import {ref, reactive, onMounted} from 'vue'
 import {message, Modal, Form, Input, DatePicker, TimePicker} from "ant-design-vue";
+import dayjs from 'dayjs'
 import Header from '/@/views/index/components/header.vue'
 import Footer from '/@/views/index/components/footer.vue'
 import {useRouter, useRoute} from 'vue-router'
@@ -163,7 +159,7 @@ import { createOrder } from '/@/api/index/order'
 import {createApi as createCommentApi, listProductCommentsApi, deleteApi as deleteCommentApi} from '/@/api/index/comment'
 import { addProductCollectUserApi, getUserCollectListApi, removeProductCollectUserApi } from '/@/api/index/productCollect'
 import AvatarImg from '/@/assets/images/avatar.jpg'
-import { CalendarOutlined, ShoppingCartOutlined, HeartOutlined, HeartFilled, DeleteOutlined } from '@ant-design/icons-vue'
+import { CalendarOutlined, HeartOutlined, HeartFilled, DeleteOutlined } from '@ant-design/icons-vue' 
 
 const router = useRouter()
 const route = useRoute()
@@ -192,17 +188,17 @@ const showReserveModal = ref(false)
 const reserveLoading = ref(false)
 const reserveForm = ref({
   reserve_time: '',
+  reserve_time_time: '',
   trade_location: '',
   remark: ''
 })
 
 onMounted(() => {
-  const productId = route.query.id?.trim() || ''
+  const productId = String(route.query.id || '').trim()
   if (productId) {
     getProductDetail(productId)
     loadComments(productId)
     checkFavorite(productId)
-    refreshIsInCart()
   }
 })
 
@@ -249,7 +245,7 @@ const handleCreateComment = () => {
     message.warn('评论内容不能为空')
     return
   }
-  const productId = route.query.id?.trim() || ''
+  const productId = String(route.query.id || '').trim()
   createCommentApi({ content, product_id: Number(productId) }).then(() => {
     message.success('评论成功')
     commentForm.value.content = ''
@@ -262,43 +258,13 @@ const handleCreateComment = () => {
 const handleDeleteComment = (c) => {
   deleteCommentApi({ ids: String(c.comment_id) }).then(() => {
     message.success('已删除')
-    const productId = route.query.id?.trim() || ''
+    const productId = String(route.query.id || '').trim()
     loadComments(productId)
   }).catch(err => {
     message.error(err.msg || '删除失败')
   })
 }
 
-const isInCart = ref(false)
-const refreshIsInCart = () => {
-  const gwcText = localStorage.getItem('gwc')
-  let gwc = []
-  if (gwcText) {
-    try { gwc = JSON.parse(gwcText).gwc || [] } catch (_) { gwc = [] }
-  }
-  const id = route.query.id?.trim()
-  isInCart.value = !!gwc.find(x => String(x.id) === String(id))
-}
-const handleToggleCart = () => {
-  const gwcText = localStorage.getItem('gwc')
-  let gwc = []
-  if (gwcText) {
-    try { gwc = JSON.parse(gwcText).gwc || [] } catch (_) { gwc = [] }
-  }
-  const id = route.query.id?.trim()
-  const idx = gwc.findIndex(x => String(x.id) === String(id))
-  if (idx !== -1) {
-    gwc.splice(idx, 1)
-    localStorage.setItem('gwc', JSON.stringify({ gwc }))
-    isInCart.value = false
-    message.success('已移除预选（购物车）')
-  } else {
-    gwc.push({ id, title: detailData.value.title, price: detailData.value.price, count: 1 })
-    localStorage.setItem('gwc', JSON.stringify({ gwc }))
-    isInCart.value = true
-    message.success('已加入预选（购物车）')
-  }
-}
 
 const checkFavorite = (productId) => {
   getUserCollectListApi({ page: 1, page_size: 100 }).then(res => {
@@ -308,7 +274,7 @@ const checkFavorite = (productId) => {
 }
 
 const handleToggleFavorite = () => {
-  const id = route.query.id?.trim()
+  const id = String(route.query.id || '').trim()
   if (!userStore.user_id) {
     message.warn('请先登录')
     router.push({name:'login'})
@@ -347,27 +313,58 @@ const handleReserve = () => {
     message.warn('请输入交易地点')
     return
   }
-  const id = route.query.id?.trim()
+  const id = String(route.query.id || '').trim()
   if (reserveLoading.value) return
+
+  // 组合日期与时间（Antd 返回 dayjs 对象）并格式化为后端期望的字符串
+  let dateStr = ''
+  let timeStr = ''
+  const d = reserveForm.value.reserve_time
+  const t = reserveForm.value.reserve_time_time
+  if (d) {
+    // dayjs 对象有 format 方法
+    dateStr = (typeof d.format === 'function') ? d.format('YYYY-MM-DD') : String(d).trim().slice(0, 10)
+  }
+  if (t) {
+    timeStr = (typeof t.format === 'function') ? t.format('HH:mm') : String(t).trim()
+  }
+  const reserveTime = timeStr ? `${dateStr} ${timeStr}` : dateStr
+
+  // 使用 dayjs 校验格式及是否早于当前时间
+  const selected = timeStr ? dayjs(reserveTime, 'YYYY-MM-DD HH:mm') : dayjs(reserveTime, 'YYYY-MM-DD')
+  if (!selected.isValid()) {
+    message.warn('预约时间格式不正确')
+    return
+  }
+  if (selected.isBefore(dayjs())) {
+    message.warn('预约时间不能早于当前时间')
+    return
+  }
+
   reserveLoading.value = true
   reserveProductApi({
     product_id: id,
-    reserve_time: reserveForm.value.reserve_time,
+    reserve_time: reserveTime,
     trade_location: reserveForm.value.trade_location,
     remark: reserveForm.value.remark
-  }).catch(() => {})
-  createOrder({ product_id: Number(id) }).then(res => {
-    const order = res.data
-    if (order && order.order_id) {
-      message.success('已生成待支付订单')
-      showReserveModal.value = false
-      router.push({ name: 'pay', query: { id: order.order_id, amount: detailData.value.price, title: detailData.value.title } })
-    } else {
-      message.warn('订单创建成功，但返回信息缺失')
-    }
-  }).catch(err => {
-    message.error(err.msg || '预约/下单失败')
-  }).finally(() => { reserveLoading.value = false })
+  }).then(() => {
+    // 预约成功后直接创建订单
+    createOrder({ product_id: Number(id) }).then(res => {
+      const order = res.data
+      if (order && order.order_id) {
+        message.success('已生成待支付订单')
+        showReserveModal.value = false
+        router.push({ name: 'pay', query: { id: order.order_id, amount: detailData.value.price, title: detailData.value.title } })
+      } else {
+        message.warn('订单创建成功，但返回信息缺失')
+      }
+    }).catch(err => {
+      message.error(err.msg || '预约/下单失败')
+    }).finally(() => { reserveLoading.value = false })
+  }).catch(() => {
+    reserveLoading.value = false
+    message.error('预约失败')
+  })
 }
 </script>
 <style scoped>

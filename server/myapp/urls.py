@@ -38,7 +38,6 @@ urlpatterns = [
     # 管理员登录
     path('admin/adminLogin', views.admin.user.admin_login),
     # 系统日志
-    path('admin/loginLog/list', views.admin.loginLog.list_api),
     # 公告管理
     path('admin/notice/list', views.admin.notice.list_api),
     path('admin/notice/create', views.admin.notice.create),
@@ -93,6 +92,7 @@ urlpatterns = [
     path('index/order/confirm', views.index.order.confirm_receipt),
     path('index/order/evaluate', views.index.order.evaluate),
     path('index/order/deliver', views.index.order.deliver),
+    path('index/order/refund', views.index.order.refund),
     # 系统通知
     path('index/notice/list', views.index.notice.list_api),
     # 搜索功能
@@ -103,11 +103,6 @@ urlpatterns = [
     path('index/record/create', views.index.record.create),
     path('index/record/delete', views.index.record.delete),
     path('index/record/deleteAll', views.index.record.deleteAll),
-    # 购物车
-    path('index/cart/list', views.index.cart.list_api),
-    path('index/cart/add', views.index.cart.add),
-    path('index/cart/delete', views.index.cart.delete),
-    path('index/cart/deleteAll', views.index.cart.deleteAll),
     # 地址管理
     path('index/address/list', views.index.address.list_api),
     path('index/address/create', views.index.address.create),

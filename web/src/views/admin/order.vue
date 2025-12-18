@@ -120,6 +120,20 @@ const columns = reactive([
     key: 'product_title',
   },
   {
+    title: '卖家',
+    dataIndex: 'seller_name',
+    key: 'seller_name',
+    align: 'center',
+    width: 120
+  },
+  {
+    title: '买家',
+    dataIndex: 'buyer_name',
+    key: 'buyer_name',
+    align: 'center',
+    width: 120
+  },
+  {
     title: '价格',
     dataIndex: 'price',
     key: 'price',

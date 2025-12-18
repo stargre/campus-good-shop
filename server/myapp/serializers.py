@@ -4,8 +4,8 @@
 """
 from rest_framework import serializers
 from .models import (
-    UserInfo, Category, Product, ProductImage, Address, Cart, 
-    UserOrder, Comment, Reserve, Record, BNotice, BLogin, 
+    UserInfo, Category, Product, ProductImage, Address, 
+    UserOrder, Comment, Reserve, Record, BNotice, 
     Favorite
 )
 
@@ -260,31 +260,6 @@ class AddressSerializer(serializers.ModelSerializer):
         fields = ['address_id', 'user_id', 'receiver_name', 'receiver_phone', 'receiver_address', 'is_default']
 
 
-class CartSerializer(serializers.ModelSerializer):
-    """
-    购物车序列化器
-    """
-    # 添加商品信息
-    product_title = serializers.CharField(source='product_id.product_title', read_only=True)
-    product_price = serializers.IntegerField(source='product_id.product_price', read_only=True)
-    product_price_yuan = serializers.SerializerMethodField(read_only=True)
-    product_image = serializers.SerializerMethodField(read_only=True)
-    
-    def get_product_price_yuan(self, obj):
-        return obj.product_id.product_price
-    
-    def get_product_image(self, obj):
-        """
-        获取商品第一张图片
-        """
-        images = ProductImage.objects.filter(product_id=obj.product_id).order_by('sort_order')
-        if images.exists():
-            return images.first().image_url
-        return ''
-    
-    class Meta:
-        model = Cart
-        fields = ['cart_id', 'user_id', 'product_id', 'product_title', 'product_price', 'product_price_yuan', 'product_image', 'add_time']
 
 
 class UserOrderSerializer(serializers.ModelSerializer):
@@ -417,20 +392,6 @@ class BNoticeSerializer(serializers.ModelSerializer):
         fields = ['b_notice_id', 'notice_content', 'create_time', 'sort_value']
 
 
-class BLoginSerializer(serializers.ModelSerializer):
-    """
-    登录日志序列化器
-    """
-    # 添加用户信息
-    user_name = serializers.CharField(source='user_id.user_name', read_only=True)
-    user_student_id = serializers.CharField(source='user_id.user_student_id', read_only=True)
-    
-    class Meta:
-        model = BLogin
-        fields = [
-            'b_login_id', 'user_id', 'user_name', 'user_student_id', 'login_time', 
-            'ip_address', 'login_device', 'login_status'
-        ]
 
 
 class ListProductSerializer(serializers.ModelSerializer):
@@ -499,6 +460,10 @@ class ListUserOrderSerializer(serializers.ModelSerializer):
     """
     订单列表序列化器（用于列表展示，信息更简洁）
     """
+    # 添加买家与卖家信息供管理端展示
+    buyer_name = serializers.CharField(source='user_id.user_name', read_only=True)
+    seller_name = serializers.CharField(source='seller_id.user_name', read_only=True)
+
     order_status_text = serializers.SerializerMethodField(read_only=True)
     
     def get_order_status_text(self, obj):
@@ -509,7 +474,7 @@ class ListUserOrderSerializer(serializers.ModelSerializer):
         model = UserOrder
         fields = [
             'order_id', 'product_title', 'price', 'order_status', 
-            'order_status_text', 'create_time', 'pay_time'
+            'order_status_text', 'create_time', 'pay_time', 'buyer_name', 'seller_name'
         ]
 
 

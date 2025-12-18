@@ -1,243 +1,25 @@
 <template>
   <div>
     <Header/>
-    <section class="cart-page flex-view">
-      <div class="left-flex">
-        <div class="title flex-view">
-          <h3>订单明细</h3>
-        </div>
-        <div class="cart-list-view">
-          <div class="list-th flex-view">
-            <span class="line-1">名称</span>
-            <span class="line-2">价格</span>
-            <span class="line-5">数量</span>
-          </div>
-          <div class="list">
-            <div class="items flex-view" v-for="item in pageData.gwc">
-              <div class="book flex-view">
-<!--                <img :src="pageData.cover">-->
-                <h2>{{ item.title }}</h2>
-              </div>
-              <div class="pay">¥{{ item.price }}</div>
-              <a-input-number v-model:value="item.count"/>
-            </div>
-          </div>
-        </div>
-        <div class="title flex-view">
-          <h3>备注</h3>
-        </div>
-        <textarea v-model="pageData.remark" placeholder="输入备注信息，100字以内" class="remark">
-    </textarea>
-      </div>
-      <div class="right-flex">
-        <div class="title flex-view">
-          <h3>收货地址</h3>
-        </div>
-        <div class="address-view">
-          <div class="info" style="">
-            <span>收件人：</span>
-            <span class="name">{{ pageData.receiverName }}
-          </span>
-            <span class="tel">{{ pageData.receiverPhone }}
-          </span>
-          </div>
-          <div class="address" v-if="pageData.receiverAddress"> {{ pageData.receiverAddress }}</div>
-          <div class="info" v-else>
-            <span>目前暂无地址信息，请</span>
-            <span class="info-blue" @click="handleAdd">新建地址</span>
-          </div>
-        </div>
-        <div class="title flex-view">
-          <h3>结算</h3>
-          <span class="click-txt">价格</span>
-        </div>
-        <div class="price-view">
-          <div class="price-item flex-view">
-            <div class="item-name">商品总价</div>
-            <div class="price-txt">¥{{ pageData.amount }}</div>
-          </div>
-          <div class="price-item flex-view">
-            <div class="item-name">商品优惠</div>
-            <div class="price-txt">¥0</div>
-          </div>
-          <div class="price-item flex-view">
-            <div class="item-name">商品折扣</div>
-            <div class="price-txt">¥0</div>
-          </div>
-          <div class="total-price-view flex-view">
-            <span>合计</span>
-            <div class="price">
-              <span class="font-big">¥{{ pageData.amount }}</span>
-            </div>
-          </div>
-          <div class="btns-view">
-            <button class="btn buy" @click="handleBack()">返回</button>
-            <button class="btn pay jiesuan" @click="handleJiesuan()">结算</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!--选择弹窗区域-->
-    <div>
-      <a-modal
-          :visible="modal.visile"
-          :forceRender="true"
-          :title="modal.title"
-          ok-text="确认"
-          cancel-text="取消"
-          @cancel="handleCancel"
-          @ok="handleOk"
-      >
-        <a-form
-            ref="myform"
-            :label-col="{ style: { width: '80px' } }"
-            :model="modal.form"
-            :rules="modal.rules"
-        >
-          <a-row :gutter="24">
-            <a-col span="24">
-              <a-form-item label="姓名" name="name">
-                <a-input placeholder="请输入" v-model:value="modal.form.name"></a-input>
-              </a-form-item>
-            </a-col>
-          </a-row>
-          <a-row :gutter="24">
-            <a-col span="24">
-              <a-form-item label="电话号码" name="mobile">
-                <a-input placeholder="请输入" v-model:value="modal.form.mobile"></a-input>
-              </a-form-item>
-            </a-col>
-          </a-row>
-          <a-row :gutter="24">
-            <a-col span="24">
-              <a-form-item label="送货地址" name="desc">
-                <a-input placeholder="请输入" v-model:value="modal.form.desc"></a-input>
-              </a-form-item>
-            </a-col>
-          </a-row>
-          <a-row :gutter="24">
-            <a-col span="24">
-              <a-form-item label="默认地址">
-                <a-switch v-model:checked="modal.form.default"></a-switch>
-              </a-form-item>
-            </a-col>
-          </a-row>
-        </a-form>
-      </a-modal>
+    <div style="padding:60px; text-align:center; font-size:18px;">购物车功能已移除</div>
+    <div style="text-align:center; margin-top:20px;">
+      <button @click="handleBack">返回首页</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {message} from "ant-design-vue";
+import { useRouter } from 'vue-router'
 import Header from '/@/views/index/components/header.vue'
-import Footer from '/@/views/index/components/footer.vue'
-import {createOrder} from '/@/api/index/order'
-import {listApi as listAddressListApi, createApi as createAddressApi} from '/@/api/index/address'
-import {useUserStore} from "/@/store";
 
-const router = useRouter();
-const route = useRoute();
-const userStore = useUserStore();
+const router = useRouter()
+const handleBack = () => router.push({ name: 'home' })
+</script>
 
-
-const pageData = reactive({
-  gwc: [],
-  id: undefined,
-  title: undefined,
-  cover: undefined,
-  price: undefined,
-  remark: undefined,
-  count: 1,
-  amount: undefined,
-  receiverName: undefined,
-  receiverPhone: undefined,
-  receiverAddress: undefined
-})
-
-// 弹窗数据
-const modal = reactive({
-  visile: false,
-  editFlag: false,
-  title: '',
-  form: {
-    name: undefined,
-    mobile: undefined,
-    desc: undefined,
-    default: undefined
-  },
-  rules: {
-    name: [{required: true, message: '请输入', trigger: 'change'}],
-  },
-})
-
-const myform = ref()
-
-onMounted(() => {
-
-  pageData.id = route.query.id
-  pageData.title = route.query.title
-  pageData.cover = route.query.cover
-  pageData.price = route.query.price
-  pageData.amount = pageData.price
-
-  // 从购物车加载
-  let gwcText = localStorage.getItem("gwc");
-  if(gwcText) {
-    let obj = JSON.parse(gwcText);
-    pageData.gwc = obj.gwc;
-    let amount = 0;
-    pageData.gwc.forEach(item => {
-      amount = amount + item.price * item.count
-    })
-    pageData.amount = amount;
-  }
-
-
-  listAddressData()
-})
-
-const handleAdd = () => {
-  resetModal();
-  modal.visile = true;
-  modal.editFlag = false;
-  modal.title = '新增';
-  // 重置
-  for (const key in modal.form) {
-    modal.form[key] = undefined;
-  }
-};
-
-const handleOk = () => {
-  if(!userStore.user_id){
-    message.warn('请先登录')
-    return
-  }
-  myform.value?.validate()
-      .then(() => {
-        const formData = new FormData()
-        formData.append('is_default', modal.form.default ? '1':'0')
-        if (modal.form.name) {
-          formData.append('receiver_name', modal.form.name)
-        }
-        if (modal.form.mobile) {
-          formData.append('receiver_phone', modal.form.mobile)
-        }
-        if (modal.form.desc) {
-          formData.append('receiver_address', modal.form.desc)
-        }
-        createAddressApi(formData).then(res => {
-          hideModal()
-          pageData.receiverName = modal.form.name
-          pageData.receiverAddress = modal.form.desc
-          pageData.receiverPhone = modal.form.mobile
-          listAddressData()
-        }).catch(err => {
-          message.error(err.msg || '新建失败')
-        })
-      })
-      .catch((err) => {
+<style scoped>
+/* 购物车页面样式已移除，保留占位样式 */
+div { font-family: system-ui; }
+</style>
         console.log(err);
         console.log('不能为空');
       });

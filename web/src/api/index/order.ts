@@ -188,3 +188,14 @@ export const deliverOrder = (id: number): Promise<AxiosResponse> => {
     data: { order_id: id }
   })
 }
+
+/**
+ * 退款订单（卖家在发货前退款）
+ */
+export const refundOrder = (id: number): Promise<AxiosResponse> => {
+  return request({
+    url: '/index/order/refund',
+    method: 'post',
+    data: { order_id: id }
+  })
+}

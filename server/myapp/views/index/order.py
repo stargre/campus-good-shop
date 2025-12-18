@@ -219,13 +219,17 @@ def pay(request):
         if order.order_status != 0:
             return APIResponse(code=1, msg='订单状态不正确')
         
+        # 检查商品是否已被售出（被其他订单支付）
+        product = order.product_id
+        if product.product_status == 3:
+            return APIResponse(code=1, msg='商品已售出，无法支付')
+
         # 模拟支付：更新状态为已支付
         order.order_status = 1  # 1=已支付
         order.pay_time = datetime.datetime.now()
         order.save()
         
         # 更新商品状态为已售出
-        product = order.product_id
         product.product_status = 3  # 3=已售出
         product.save()
         
@@ -371,3 +375,43 @@ def deliver(request):
         })
     except Exception as e:
         return APIResponse(code=1, msg=f'发货失败: {str(e)}')
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthtication])
+def refund(request):
+    """商家退款接口（仅限卖家在发货前退款）"""
+    try:
+        token = request.META.get("HTTP_TOKEN", "")
+        users = UserInfo.objects.filter(token=token)
+        if len(users) == 0:
+            return APIResponse(code=1, msg='用户未登录')
+        user = users[0]
+
+        order_id = request.data.get('order_id')
+        if not order_id:
+            return APIResponse(code=1, msg='订单ID不能为空')
+
+        try:
+            order = UserOrder.objects.get(order_id=order_id)
+        except UserOrder.DoesNotExist:
+            return APIResponse(code=1, msg='订单不存在')
+
+        # 只有已支付状态的订单可以退款，并且必须由卖家发起
+        if order.order_status != 1:
+            return APIResponse(code=1, msg='该订单不是可退款状态')
+        if order.seller_id.user_id != user.user_id:
+            return APIResponse(code=1, msg='无权退款')
+
+        # 执行退款：更新订单状态为已退款，并恢复商品状态
+        order.order_status = 5  # 5=已退款
+        order.update_time = timezone.now()
+        order.save()
+
+        product = order.product_id
+        product.product_status = 1  # 恢复为审核通过
+        product.save()
+
+        return APIResponse(code=0, msg='退款成功', data=UserOrderSerializer(order).data)
+    except Exception as e:
+        return APIResponse(code=1, msg=f'退款失败: {str(e)}')

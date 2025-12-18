@@ -41,48 +41,6 @@
         <button class="login btn hidden-sm" @click="goLogin()">登录</button>
       </template>
 
-      <div class="right-icon" @click="handleOpenGwc">
-        <ShoppingCartOutlined class="cart-icon" />
-        <span class="msg-point" style=""></span>
-      </div>
-      <div>
-        <a-drawer
-            title="预选商品"
-            placement="right"
-            :closable="true"
-            :maskClosable="true"
-            :visible="msgVisible"
-            @close="onClose"
-        >
-          <a-spin :spinning="loading" style="min-height: 200px;">
-            <div class="list-content">
-              <div class="notification-view">
-                <div class="list">
-                  <div class="notification-item flex-view" v-for="item in gwcData">
-                    <!---->
-                    <div class="content-box" style="">
-                      <div class="content">
-                        <p>{{ item.title }} <span style="color: #f00;">￥{{ item.price }}</span></p>
-                      </div>
-                      
-                      <DeleteOutlined @click="handleDeleteGwc(item.id)"
-                        class="delete-icon" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </a-spin>
-          <div
-              style="position: absolute; border-top: 1px #eee dashed; background-color: #fff; display: flex; flex-direction: row;width: 90%; height:44px;bottom: 1px;">
-            <div style="flex:1; line-height: 44px; font-weight: normal;">商品总额{{ zong }}元</div>
-            <div @click="handleConfirm"
-                 style="line-height: 44px;background-color: #4684e2; color: #fff;padding: 0px 16px; font-weight: bold;cursor: pointer;">
-              提交订单
-            </div>
-          </div>
-        </a-drawer>
-      </div>
     </div>
   </div>
   <a-modal v-model:visible="noticeVisible" title="平台公告" :footer="null">
@@ -100,7 +58,7 @@ import {useUserStore} from "/@/store";
 import { detailApi as userDetailApi } from '/@/api/index/user'
 import AvatarIcon from '/@/assets/images/avatar.jpg';
 import { getImageUrl } from '/@/utils/url';
-import { SearchOutlined, ShoppingCartOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import { SearchOutlined, DeleteOutlined } from '@ant-design/icons-vue';
 import {USER_TOKEN} from "/@/store/constants";
 
 
@@ -111,85 +69,7 @@ const userAvatar = ref('');
 
 const keywordRef = ref()
 
-let loading = ref(false)
-let msgVisible = ref(false)
-let gwcData = ref([
-])
 
-let zong = ref(0)
-
-
-onMounted(() => {
-  getMessageList()
-
-  watchEffect(async () => {
-    console.log('watchEffect----->')
-    // 计算总额
-    let z = 0;
-    gwcData.value.forEach(item => {
-      z = z + parseFloat(item.price) * item.count;
-    })
-    zong.value = z;
-
-    if (gwcData.value &&  gwcData.value.length > 0) {
-      let obj = {
-        gwc:  gwcData.value
-      }
-      let jsonText = JSON.stringify(obj);
-      console.log('保存数据===>' + jsonText)
-      // 保存购物车
-      localStorage.setItem("gwc", jsonText);
-    } else {
-      localStorage.setItem("gwc", "");
-    }
-  })
-
-  // 加载用户头像
-  watchEffect(async () => {
-    if (userStore.user_id) {
-      try {
-        const res = await userDetailApi({ id: userStore.user_id })
-        userAvatar.value = getImageUrl(res.data?.avatar || res.data?.user_avart || '')
-      } catch (_) {
-        userAvatar.value = ''
-      }
-    } else {
-      userAvatar.value = ''
-    }
-  })
-})
-
-const handleDeleteGwc = (id) => {
-  gwcData.value.forEach((item, index) => {
-    if (item.id === id) {
-      console.log(item, index);
-      gwcData.value.splice(index, 1)
-    }
-  })
-}
-
-const getMessageList = () => {
-  loading.value = true
-  gwcData.value = []
-
-  // 恢复购物车
-  let gwcDataText = localStorage.getItem("gwc");
-  if (gwcDataText) {
-    console.log('恢复数据===>' + gwcDataText);
-    let obj = JSON.parse(gwcDataText);
-    gwcData.value = obj.gwc
-  }
-
-  // 计算总额
-  let z = 0;
-  gwcData.value.forEach(item => {
-    z = z + parseFloat(item.price) * item.count;
-  })
-  zong.value = z;
-
-
-  loading.value = false
-}
 const search = () => {
   const keyword = keywordRef.value.value
   if (route.name === 'search') {
@@ -203,10 +83,6 @@ const goLogin = () => {
   router.push({name: 'login'})
 }
 
-const handleOpenGwc = () => {
-  msgVisible.value = true
-  getMessageList()
-}
 
 const goUserCenter = (menuName) => {
   router.push({name: menuName})
@@ -216,21 +92,7 @@ const quit = () => {
     router.push({name: 'portal'})
   })
 }
-const onClose = () => {
-  msgVisible.value = false;
-}
 
-const handleConfirm = () => {
-
-  if (gwcData.value.length > 0) {
-    const userId = userStore.user_id
-    router.push({
-      name: 'confirm',
-      query:
-          {}
-    })
-  }
-}
 
 const goPublish = () => {
   if (userStore.user_token) {

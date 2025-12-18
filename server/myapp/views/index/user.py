@@ -9,7 +9,7 @@ from rest_framework.views import exception_handler
 from myapp.auth.authentication import TokenAuthtication
 from myapp.auth.throttling import MyRateThrottle
 from myapp.handler import APIResponse
-from myapp.models import UserInfo, BLogin, PasswordReset
+from myapp.models import UserInfo, PasswordReset
 from myapp.serializers import UserInfoSerializer, UserInfoDetailSerializer
 from myapp.utils import md5value, get_ip, get_ua
 
@@ -62,19 +62,6 @@ def login(request):
 
         if not users.exists():
             # 记录登录失败日志，如果能找到该账号则写失败日志
-            try:
-                possible = UserInfo.objects.filter(Q(user_student_id=identifier) | Q(user_name=identifier) | Q(user_email=identifier))
-                if possible.exists():
-                    from django.utils import timezone
-                    BLogin.objects.create(
-                        user_id=possible[0],
-                        login_time=timezone.now(),
-                        ip_address=get_ip(request),
-                        login_device=get_ua(request),
-                        login_status=False
-                    )
-            except Exception:
-                pass
             return APIResponse(code=1, msg='用户名/邮箱/学号或密码错误')
 
         user = users[0]
@@ -88,15 +75,6 @@ def login(request):
         user.token = token
         user.save()
 
-        # 记录登录成功日志
-        from django.utils import timezone
-        BLogin.objects.create(
-            user_id=user,
-            login_time=timezone.now(),
-            ip_address=get_ip(request),
-            login_device=get_ua(request),
-            login_status=True
-        )
 
         serializer = UserInfoSerializer(user)
         user_data = serializer.data

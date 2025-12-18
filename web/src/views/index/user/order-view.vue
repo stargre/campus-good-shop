@@ -40,6 +40,7 @@
             <span class="text">订单状态</span>
             <span class="state">{{item.order_status_text}}</span>
             <a-button v-if="Number(item.order_status)===1 && Number(item.seller_id)===Number(userStore.user_id)" type="primary" size="small" @click="handleDeliver(item)">发货</a-button>
+            <a-button v-if="Number(item.order_status)===1 && Number(item.seller_id)===Number(userStore.user_id)" type="default" size="small" style="margin-left:8px" @click="handleRefund(item)">退款</a-button>
           </div>
         </div>
         <div class="content flex-view">
@@ -93,7 +94,7 @@
 import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getOrderList as getOrderListApi, cancelOrder, deliverOrder } from '/@/api/index/order'
+import { getOrderList as getOrderListApi, cancelOrder, deliverOrder, refundOrder } from '/@/api/index/order'
 import { BASE_URL } from '/@/store/constants'
 import { useUserStore } from '/@/store'
 
@@ -174,6 +175,15 @@ const handleDeliver = (item) => {
     getOrderList()
   }).catch(err => {
     message.error(err.msg || '发货失败')
+  })
+}
+
+const handleRefund = (item) => {
+  refundOrder(item.order_id).then(() => {
+    message.success('退款成功')
+    getOrderList()
+  }).catch(err => {
+    message.error(err.msg || '退款失败')
   })
 }
 

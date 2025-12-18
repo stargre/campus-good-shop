@@ -4,6 +4,7 @@
 """
 import json
 from datetime import datetime
+from django.utils import timezone
 from rest_framework.decorators import api_view, authentication_classes, throttle_classes
 from django.db.models import Q, F
 from myapp.auth.authentication import TokenAuthtication
@@ -461,6 +462,28 @@ def reserve(request):
         
         if not reserve_time or not trade_location:
             return APIResponse(code=1, msg='预约时间和交易地点不能为空')
+        
+        # 验证预约时间格式并禁止选择早于当前时间的时间点
+        try:
+            reserve_time_str = str(reserve_time).strip()
+            # 只有日期部分（YYYY-MM-DD）
+            if len(reserve_time_str) <= 10:
+                reserve_date = datetime.strptime(reserve_time_str, '%Y-%m-%d').date()
+                today = timezone.now().date()
+                if reserve_date < today:
+                    return APIResponse(code=1, msg='预约时间不能早于当前时间')
+            else:
+                # 包含时间部分，尝试解析 'YYYY-MM-DD HH:MM[:SS]'
+                try:
+                    reserve_dt = datetime.strptime(reserve_time_str, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    reserve_dt = datetime.strptime(reserve_time_str, '%Y-%m-%d %H:%M')
+                now = timezone.now()
+                # 将两端都使用 naive 比较（假设前端时间为本地时间）
+                if reserve_dt < now.replace(tzinfo=None):
+                    return APIResponse(code=1, msg='预约时间不能早于当前时间')
+        except Exception as e:
+            return APIResponse(code=1, msg='预约时间格式不正确')
         
         # 获取卖家信息
         seller = product.user_id

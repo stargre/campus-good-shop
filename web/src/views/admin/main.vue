@@ -50,10 +50,6 @@
               <folder-outlined/>
             </template>
             <template #title>日志管理</template>
-            <a-menu-item key="loginLog">
-              <appstore-outlined/>
-              <span>登录日志</span>
-            </a-menu-item>
             <a-menu-item key="opLog">
               <appstore-outlined/>
               <span>操作日志</span>

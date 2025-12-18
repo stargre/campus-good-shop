@@ -15,33 +15,6 @@ INSERT INTO `address` VALUES
 (10,'zhiyu Lin','15305977276','Sichuan',0,12);
 UNLOCK TABLES;
 
---
--- Dumping data for table `b_login`
---
-
-LOCK TABLES `b_login` WRITE;
-INSERT INTO `b_login` VALUES 
-(1,'2025-12-08 12:38:12.940942','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,8),
-(2,'2025-12-08 12:44:15.418025','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,1),
-(3,'2025-12-08 17:51:11.785362','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,8),
-(4,'2025-12-08 20:28:37.695057','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,8),
-(5,'2025-12-09 16:00:13.388939','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,1),
-(6,'2025-12-10 21:21:03.394151','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,1),
-(7,'2025-12-12 17:30:16.117750','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,9),
-(8,'2025-12-12 17:45:21.591441','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,9),
-(9,'2025-12-12 19:26:23.981130','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,11),
-(10,'2025-12-12 19:29:50.350002','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,11),
-(11,'2025-12-12 21:33:38.697603','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,12),
-(12,'2025-12-16 18:07:56.123747','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,12),
-(13,'2025-12-16 18:12:30.983787','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,13),
-(14,'2025-12-16 18:12:46.726450','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,9),
-(15,'2025-12-16 18:16:12.187143','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,9),
-(16,'2025-12-16 18:16:20.411513','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',0,9),
-(17,'2025-12-16 18:16:43.945299','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',0,9),
-(18,'2025-12-16 18:16:45.539503','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,9),
-(19,'2025-12-16 20:26:30.143562','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,12),
-(20,'2025-12-16 20:38:15.876530','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',1,12);
-UNLOCK TABLES;
 
 --
 -- Dumping data for table `b_notice`
@@ -55,14 +28,9 @@ INSERT INTO `b_notice` VALUES
 (4,'123456','2025-12-08 21:09:10.590498',13);
 UNLOCK TABLES;
 
---
--- Dumping data for table `cart`
---
+-- cart table data removed
+-- the cart table has been removed from the project; data dump omitted
 
-LOCK TABLES `cart` WRITE;
-INSERT INTO `cart` VALUES 
-(1,'2025-12-07 23:08:39.033592',2,3);
-UNLOCK TABLES;
 
 --
 -- Dumping data for table `category`
