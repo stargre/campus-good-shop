@@ -189,35 +189,6 @@ CREATE TABLE `user_order` (
   CONSTRAINT `user_order_user_id_1247599d_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Table structure for table `reserve`
---
-DROP TABLE IF EXISTS `reserve`;
-CREATE TABLE `reserve` (
-  `reserve_id` int NOT NULL AUTO_INCREMENT,
-  `reserve_status` int NOT NULL,
-  `create_time` datetime(6) NOT NULL,
-  `finish_time` datetime(6) DEFAULT NULL,
-  `address_id` int DEFAULT NULL,
-  `seller_id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `order_id` int DEFAULT NULL,
-  `product_id` int DEFAULT NULL,
-  `remark` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `reserve_time` datetime(6) DEFAULT NULL,
-  `trade_location` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  PRIMARY KEY (`reserve_id`),
-  KEY `reserve_seller_id_dc063e87_fk_user_info_user_id` (`seller_id`),
-  KEY `reserve_user_id_b2f2d25e_fk_user_info_user_id` (`user_id`),
-  KEY `reserve_product_id_051463b6_fk_product_product_id` (`product_id`),
-  KEY `reserve_address_id_a817ca90_fk_address_address_id` (`address_id`),
-  KEY `reserve_order_id_41925fe4_fk_user_order_order_id` (`order_id`),
-  CONSTRAINT `reserve_address_id_a817ca90_fk_address_address_id` FOREIGN KEY (`address_id`) REFERENCES `address` (`address_id`),
-  CONSTRAINT `reserve_order_id_41925fe4_fk_user_order_order_id` FOREIGN KEY (`order_id`) REFERENCES `user_order` (`order_id`),
-  CONSTRAINT `reserve_product_id_051463b6_fk_product_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
-  CONSTRAINT `reserve_seller_id_dc063e87_fk_user_info_user_id` FOREIGN KEY (`seller_id`) REFERENCES `user_info` (`user_id`),
-  CONSTRAINT `reserve_user_id_b2f2d25e_fk_user_info_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `b_notice`

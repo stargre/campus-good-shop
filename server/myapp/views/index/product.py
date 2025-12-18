@@ -9,9 +9,8 @@ from rest_framework.decorators import api_view, authentication_classes, throttle
 from django.db.models import Q, F
 from myapp.auth.authentication import TokenAuthtication
 from myapp.handler import APIResponse
-from myapp.models import Product, ProductImage, UserInfo, Reserve, Record
+from myapp.models import Product, ProductImage, UserInfo, Record, Address
 from myapp.serializers import ProductSerializer, ProductDetailSerializer
-from myapp.models import Product, ProductImage, UserInfo, Reserve, Record, Address
 
 
 @api_view(['GET'])
@@ -496,26 +495,49 @@ def reserve(request):
             except Address.DoesNotExist:
                 return APIResponse(code=1, msg='地址不存在')
         
-        # 创建预约记录 - 使用新字段
-        reserve_data = {
-            'product_id': product,
-            'user_id': user,
-            'seller_id': seller,
-            'reserve_time': reserve_time,
-            'trade_location': trade_location,
-            'remark': remark,
-            'address_id': address,
-            'order_id': None,  # 预约时还没有订单
-            'reserve_status': 0  # 0-待确认
+        # 创建订单代替原有的预约（用 UserOrder 表替代 Reserve）
+        order_data = {
+            'user_id': user.user_id,  # 买家
+            'seller_id': product.user_id.user_id,  # 卖家
+            'product_id': product.product_id,
+            'product_title': product.product_title,
+            'product_image': '',
+            'price': product.product_price,
+            'order_status': 0,  # 0=待支付
         }
-        
-        reserve = Reserve.objects.create(**reserve_data)
-        
+        # 获取商品第一张图片
+        from myapp.models import ProductImage
+        images = ProductImage.objects.filter(product_id=product.product_id).order_by('sort_order')
+        if images.exists():
+            order_data['product_image'] = images.first().image_url
+
+        # 创建订单
+        from myapp.serializers import UserOrderSerializer
+        serializer = UserOrderSerializer(data=order_data)
+        if not serializer.is_valid():
+            print("创建订单序列化错误:", serializer.errors)
+            return APIResponse(code=1, msg='创建订单失败', data=serializer.errors)
+        order = serializer.save()
+
+        # 保存预约信息到订单备注中（保留原字段信息）
+        try:
+            order_ref = order
+            reserve_meta = {
+                'reserve_time': reserve_time,
+                'trade_location': trade_location,
+                'remark': remark,
+            }
+            # 将预约信息放入 refund_reason 字段以便保留数据（可后续迁移到专门字段）
+            order_ref.refund_reason = str(reserve_meta)
+            order_ref.save()
+        except Exception as _:
+            pass
+
         # 更新商品的预约状态
         product.is_reserved = True
         product.save()
-        
-        return APIResponse(code=0, msg='预约成功', data={'reserve_id': reserve.reserve_id})
+
+        return APIResponse(code=0, msg='预约成功', data={'order_id': order.order_id})
         
     except Product.DoesNotExist:
         return APIResponse(code=1, msg='商品不存在')
@@ -541,30 +563,31 @@ def cancel_reserve(request):
             return APIResponse(code=1, msg='用户未登录')
         user = users[0]
         
-        # 获取预约ID
-        reserve_id = request.data.get('reserve_id')
-        if not reserve_id:
-            return APIResponse(code=1, msg='缺少预约ID')
+        # 获取订单ID（兼容旧参数名 reserve_id）
+        order_id = request.data.get('reserve_id') or request.data.get('order_id')
+        if not order_id:
+            return APIResponse(code=1, msg='缺少订单ID')
         
-        # 查询预约记录
+        # 查询订单记录
         try:
-            reserve = Reserve.objects.get(reserve_id=reserve_id, user_id=user.user_id)
-        except Reserve.DoesNotExist:
-            return APIResponse(code=1, msg='预约记录不存在')
+            order = UserOrder.objects.get(order_id=order_id)
+        except UserOrder.DoesNotExist:
+            return APIResponse(code=1, msg='订单不存在')
         
-        # 检查预约状态（只能取消待确认的预约）
-        if reserve.reserve_status != 0:
-            return APIResponse(code=1, msg='只能取消待确认的预约')
+        # 只有待支付状态的订单或预约状态可取消
+        if order.order_status != 0:
+            return APIResponse(code=1, msg='该订单当前状态不能取消')
         
-        # 更新预约状态为已取消
-        reserve.reserve_status = 3  # 3-已取消
-        reserve.finish_time = datetime.datetime.now()
-        reserve.save()
+        # 更新订单状态为已取消
+        order.order_status = 4  # 4=已取消
+        order.cancel_time = datetime.datetime.now()
+        order.save()
         
         # 更新商品的预约状态
-        product = reserve.product_id
-        product.is_reserved = False
-        product.save()
+        product = order.product_id
+        if product:
+            product.is_reserved = False
+            product.save()
         
         return APIResponse(code=0, msg='取消预约成功')
         

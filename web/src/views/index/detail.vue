@@ -347,24 +347,21 @@ const handleReserve = () => {
     reserve_time: reserveTime,
     trade_location: reserveForm.value.trade_location,
     remark: reserveForm.value.remark
-  }).then(() => {
-    // 预约成功后直接创建订单
-    createOrder({ product_id: Number(id) }).then(res => {
-      const order = res.data
-      if (order && order.order_id) {
-        message.success('已生成待支付订单')
-        showReserveModal.value = false
-        router.push({ name: 'pay', query: { id: order.order_id, amount: detailData.value.price, title: detailData.value.title } })
-      } else {
-        message.warn('订单创建成功，但返回信息缺失')
-      }
-    }).catch(err => {
-      message.error(err.msg || '预约/下单失败')
-    }).finally(() => { reserveLoading.value = false })
-  }).catch(() => {
+  }).then(res => {
+    // 预约成功后，后端现在直接创建订单并返回 order_id
+    const respData = res?.data || {}
+    const orderId = respData.order_id || respData.order_id || null
+    if (orderId) {
+      message.success('已生成待支付订单')
+      showReserveModal.value = false
+      router.push({ name: 'pay', query: { id: orderId, amount: detailData.value.price, title: detailData.value.title } })
+    } else {
+      message.warn('预约成功，但未返回订单信息')
+    }
+  }).catch(err => {
     reserveLoading.value = false
-    message.error('预约失败')
-  })
+    message.error(err?.msg || '预约失败')
+  }).finally(() => { reserveLoading.value = false })
 }
 </script>
 <style scoped>

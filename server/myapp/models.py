@@ -184,35 +184,7 @@ class Comment(models.Model):
         verbose_name = '交易评论表'
         verbose_name_plural = verbose_name
 
-# 预约表
-class Reserve(models.Model):
-    reserve_id = models.AutoField(primary_key=True)
-    # 订单关联（保留原有，可为空）
-    order_id = models.ForeignKey(UserOrder, verbose_name='关联的订单ID', on_delete=models.CASCADE, db_column='order_id', null=True, blank=True)
-    
-    user_id = models.ForeignKey(UserInfo, verbose_name='预约用户ID（买家）', on_delete=models.CASCADE, related_name='reserves_as_user', db_column='user_id')
-    seller_id = models.ForeignKey(UserInfo, verbose_name='卖家用户ID', on_delete=models.CASCADE, related_name='reserves_as_seller', db_column='seller_id')
-    address_id = models.ForeignKey(Address, verbose_name='交易地址ID', on_delete=models.CASCADE, db_column='address_id', null=True, blank=True)
-    
-    # ============ 新增字段（全部可为空）============
-    # 商品关联（新增，可为空）
-    product_id = models.ForeignKey(Product, verbose_name='关联的商品ID', on_delete=models.CASCADE, db_column='product_id', null=True, blank=True)
-    # 预约时间（新增，可为空）
-    reserve_time = models.DateTimeField(verbose_name='预约时间', null=True, blank=True)
-    # 交易地点（新增，可为空）
-    trade_location = models.CharField(max_length=255, verbose_name='交易地点', null=True, blank=True)
-    # 备注（新增，可为空）
-    remark = models.TextField(verbose_name='备注', null=True, blank=True)
-    # ============================================
-    
-    reserve_status = models.IntegerField(verbose_name='预约状态', choices=((0, '待确认'), (1, '已确认'), (2, '已完成'), (3, '已取消')), default=0)
-    create_time = models.DateTimeField(verbose_name='预约创建时间', default=datetime.datetime.now)
-    finish_time = models.DateTimeField(verbose_name='预约完成时间', null=True, blank=True)
-    
-    class Meta:
-        db_table = 'reserve'
-        verbose_name = '线下交易预约表'
-        verbose_name_plural = verbose_name
+
         
 # 浏览记录表
 class Record(models.Model):

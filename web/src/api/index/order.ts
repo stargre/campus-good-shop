@@ -147,9 +147,9 @@ interface Reserve {
 }
 
 /**
- * 创建预约
+ * 创建预约（后端现在用订单替代预约，仍保留此接口名以兼容旧调用）
  */
-export const createReserve = (data: {product_id: number, user_id: number}): Promise<AxiosResponse> => {
+export const createReserve = (data: {product_id: number, user_id?: number}): Promise<AxiosResponse> => {
   return request({
     url: '/index/product/reserve',
     method: 'post',
@@ -158,24 +158,24 @@ export const createReserve = (data: {product_id: number, user_id: number}): Prom
 }
 
 /**
- * 获取预约列表
+ * 获取预约列表（映射到订单列表，筛选待支付状态）
  */
 export const getReserveList = (userId: number): Promise<AxiosResponse> => {
   return request({
-    url: '/index/reserve/list',
+    url: '/index/order/list',
     method: 'get',
-    params: { userId }
+    params: { orderStatus: 0 }
   })
 }
 
 /**
- * 取消预约
+ * 取消预约（映射到取消订单）
  */
 export const cancelReserve = (id: number): Promise<AxiosResponse> => {
   return request({
-    url: '/index/product/cancel_reserve',
+    url: '/index/order/cancel',
     method: 'post',
-    data: { reserve_id: id }
+    data: { order_id: id }
   })
 }
 /**

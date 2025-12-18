@@ -5,7 +5,7 @@
 from rest_framework import serializers
 from .models import (
     UserInfo, Category, Product, ProductImage, Address, 
-    UserOrder, Comment, Reserve, Record, BNotice, 
+    UserOrder, Comment, Record, BNotice, 
     Favorite
 )
 
@@ -325,32 +325,7 @@ class CommentSerializer(serializers.ModelSerializer):
         ]
 
 
-class ReserveSerializer(serializers.ModelSerializer):
-    """
-    预约序列化器
-    """
-    # 添加买家信息
-    buyer_name = serializers.CharField(source='user_id.user_name', read_only=True)
-    # 添加卖家信息
-    seller_name = serializers.CharField(source='seller_id.user_name', read_only=True)
-    # 添加地址信息
-    receiver_name = serializers.CharField(source='address_id.receiver_name', read_only=True)
-    receiver_phone = serializers.CharField(source='address_id.receiver_phone', read_only=True)
-    receiver_address = serializers.CharField(source='address_id.receiver_address', read_only=True)
-    # 获取预约状态描述
-    reserve_status_text = serializers.SerializerMethodField(read_only=True)
-    
-    def get_reserve_status_text(self, obj):
-        status_map = {0: '待确认', 1: '已确认', 2: '已完成', 3: '已取消'}
-        return status_map.get(obj.reserve_status, '未知')
-    
-    class Meta:
-        model = Reserve
-        fields = [
-            'reserve_id', 'order_id', 'user_id', 'buyer_name', 'seller_id', 'seller_name',
-            'address_id', 'receiver_name', 'receiver_phone', 'receiver_address', 
-            'reserve_status', 'reserve_status_text', 'create_time', 'finish_time'
-        ]
+
 
 
 class RecordSerializer(serializers.ModelSerializer):

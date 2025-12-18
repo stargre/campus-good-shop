@@ -154,15 +154,6 @@ INSERT INTO `record` VALUES
 (10,'2025-12-16 20:41:21.142401',18,12);
 UNLOCK TABLES;
 
---
--- Dumping data for table `reserve`
---
-
-LOCK TABLES `reserve` WRITE;
-INSERT INTO `reserve` VALUES 
-(1,1,'2025-12-08 21:30:00.000000',NULL,NULL,3,2,NULL,2,NULL,NULL,NULL),
-(2,2,'2025-12-09 12:00:00.000000','2025-12-09 12:30:00.000000',4,4,8,NULL,4,'按时交易','2025-12-09 12:00:00.000000','图书馆前');
-UNLOCK TABLES;
 
 --
 -- Dumping data for table `user_info`

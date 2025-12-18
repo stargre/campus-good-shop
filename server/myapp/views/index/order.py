@@ -10,8 +10,8 @@ from rest_framework.decorators import api_view, authentication_classes
 from django.db.models import Q
 from myapp.auth.authentication import TokenAuthtication
 from myapp.handler import APIResponse
-from myapp.models import UserOrder, Reserve, Product, UserInfo, Comment
-from myapp.serializers import UserOrderSerializer, ReserveSerializer, CommentSerializer
+from myapp.models import UserOrder, Product, UserInfo, Comment
+from myapp.serializers import UserOrderSerializer, CommentSerializer
 
 
 @api_view(['GET'])
