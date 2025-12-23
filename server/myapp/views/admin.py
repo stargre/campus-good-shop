@@ -14,11 +14,6 @@ from myapp.views.admin import order
 from myapp.views.admin import comment
 from myapp.views.admin import category
 from myapp.views.admin import notice
-from myapp.views.admin import banner
-from myapp.views.admin import record
-from myapp.views.admin import loginLog
-from myapp.views.admin import opLog
-from myapp.views.admin import errorLog
 
 # 导出admin模块，使其可以通过 views.admin.xxx 访问
 __all__ = [
@@ -29,10 +24,5 @@ __all__ = [
     'comment',
     'category',
     'notice',
-    'banner',
-    'record',
-    'loginLog',
-    'opLog',
-    'errorLog',
     'admin_login',
 ]

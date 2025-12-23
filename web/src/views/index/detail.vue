@@ -81,7 +81,7 @@
       <a-list v-else :data-source="commentList" item-layout="horizontal">
         <template #renderItem="{ item }">
           <a-list-item>
-            <a-list-item-meta :description="item.comment_time">
+            <a-list-item-meta :description="item.create_time">
               <template #title>
                 <div class="comment-title">{{ item.buyer_name }}</div>
               </template>

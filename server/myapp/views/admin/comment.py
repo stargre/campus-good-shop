@@ -73,7 +73,6 @@ def create(request):
     """新增评论接口"""
     try:
         # 获取评论数据（支持按订单或商品进行评论）
-        order_id = request.data.get('order_id')
         product_id = request.data.get('product_id')
         user_id = request.data.get('user_id')
         seller_id = request.data.get('seller_id')
@@ -86,25 +85,9 @@ def create(request):
 
         # 尝试从订单或商品推导卖家ID
         from myapp.models import UserOrder, Product
-        if not seller_id:
-            if order_id:
-                try:
-                    order = UserOrder.objects.get(order_id=order_id)
-                    seller_id = order.seller_id.user_id
-                except UserOrder.DoesNotExist:
-                    return APIResponse(code=1, msg='订单不存在')
-            elif product_id:
-                try:
-                    product = Product.objects.get(product_id=product_id)
-                    seller_id = product.user_id.user_id
-                except Product.DoesNotExist:
-                    return APIResponse(code=1, msg='商品不存在')
-            else:
-                return APIResponse(code=1, msg='缺少订单ID或商品ID')
 
         # 构建评论数据
         comment_data = {
-            'order_id': order_id,
             'product_id': product_id,
             'user_id': user_id,
             'seller_id': seller_id,

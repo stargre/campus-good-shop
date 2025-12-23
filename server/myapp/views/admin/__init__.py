@@ -10,8 +10,6 @@ from . import order
 from . import comment
 from . import category
 from . import notice
-from . import record
-from . import loginLog
 
 # 导出所有模块，使其可以通过 views.admin.xxx 访问
 __all__ = [
@@ -22,7 +20,5 @@ __all__ = [
     'comment',
     'category',
     'notice',
-    'record',
-    'loginLog',
 ]
 

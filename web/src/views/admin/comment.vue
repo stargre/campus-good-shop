@@ -99,8 +99,8 @@ const columns = reactive([
   },
   {
     title: '评论时间',
-    dataIndex: 'comment_time',
-    key: 'comment_time',
+    dataIndex: 'create_time',
+    key: 'create_time',
     align: 'center',
   },
   {
@@ -158,7 +158,7 @@ const getList = () => {
           title: item.product_title,
           content: item.comment_content,
           rating: item.rating,
-          comment_time: item.comment_time
+          create_time: item.create_time
         }))
       })
       .catch((err) => {

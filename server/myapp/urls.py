@@ -11,7 +11,7 @@ urlpatterns = [
     # ==================== 后台管理API ====================
     path('admin/overview/count', views.admin.overview.count),
     path('admin/overview/sysInfo', views.admin.overview.sysInfo),
-    # 商品管理（替换原thing）
+    # 商品管理
     path('admin/product/list', views.admin.product.list_api),
     path('admin/product/detail', views.admin.product.detail),
     path('admin/product/create', views.admin.product.create),
@@ -48,10 +48,6 @@ urlpatterns = [
     path('admin/comment/create', views.admin.comment.create),
     path('admin/comment/update', views.admin.comment.update),
     path('admin/comment/delete', views.admin.comment.delete),
-    # 浏览记录管理
-    path('admin/record/list', views.admin.record.list_api),
-    path('admin/record/delete', views.admin.record.delete),
-    path('admin/record/deleteAll', views.admin.record.deleteAll),
 
     # ==================== 前台用户API ====================
     # 用户认证
@@ -88,6 +84,7 @@ urlpatterns = [
     path('index/comment/myList', views.index.comment.list_my_comment),
     path('index/comment/like', views.index.comment.like),
     path('index/comment/delete', views.index.comment.delete),
+    # 订单管理
     path('index/order/pay', views.index.order.pay),
     path('index/order/confirm', views.index.order.confirm_receipt),
     path('index/order/evaluate', views.index.order.evaluate),
@@ -98,11 +95,6 @@ urlpatterns = [
     # 搜索功能
     path('index/search/search', views.index.search),
     path('index/search/hotKeywords', views.index.hotKeywords),
-    # 浏览记录
-    path('index/record/list', views.index.record.list_api),
-    path('index/record/create', views.index.record.create),
-    path('index/record/delete', views.index.record.delete),
-    path('index/record/deleteAll', views.index.record.deleteAll),
     # 地址管理
     path('index/address/list', views.index.address.list_api),
     path('index/address/create', views.index.address.create),

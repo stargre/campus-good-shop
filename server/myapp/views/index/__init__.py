@@ -6,7 +6,6 @@ from myapp.views.index.notice import *
 from myapp.views.index.address import *
 from myapp.views.index.product import *
 from myapp.views.index.search import *
-from myapp.views.index.record import *
 from myapp.views.index.favorite import *
 
 # 暴露子模块以支持 views.index.xxx 访问
@@ -18,7 +17,6 @@ from . import notice as notice
 from . import address as address
 from . import product as product
 from . import search as search
-from . import record as record
 from . import favorite as favorite
 try:
     from . import upload as upload
@@ -26,5 +24,5 @@ except Exception:
     pass
 
 __all__ = [
-    'category', 'user', 'comment', 'order', 'notice', 'address', 'product', 'search', 'record', 'favorite', 'upload'
+    'category', 'user', 'comment', 'order', 'notice', 'address', 'product', 'search', 'favorite', 'upload'
 ]

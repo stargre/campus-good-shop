@@ -76,7 +76,7 @@ const getCommentList =()=> {
         productId: it.product_id ?? it.productId,
         title: it.product_title ?? it.title ?? '',
         content: String(it.comment_content ?? it.content ?? ''),
-        commentTime: it.comment_time ?? it.create_time ?? '',
+        commentTime: it.create_time ?? it.create_time ?? '',
         avatar: avatarUrl || '',
         cover: (() => {
           const s = it.cover || ''

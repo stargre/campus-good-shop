@@ -5,7 +5,7 @@
 from rest_framework import serializers
 from .models import (
     UserInfo, Category, Product, ProductImage, Address, 
-    UserOrder, Comment, Record, BNotice, 
+    UserOrder, Comment, BNotice, 
     Favorite
 )
 
@@ -190,7 +190,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'product_id', 'id', 'user_id', 'user_name', 'user_collage', 'user_student_id', 'category', 'category_name',
             'product_title', 'title', 'product_o_price', 'product_o_price_yuan', 'product_price', 
             'product_price_yuan', 'price', 'product_status', 'quality', 'quality_text', 'create_time',
-            'update_time', 'view_count', 'collect_count', 'cover_image', 'cover', 'is_reserved',
+            'update_time',  'cover_image', 'cover', 'is_reserved',
             'location', 'content'
         ]
     
@@ -246,8 +246,8 @@ class ProductDetailSerializer(serializers.ModelSerializer):
                 'category', 'category_name', 'product_title', 'product_o_price', 
                 'product_o_price_yuan', 'product_price', 'product_price_yuan', 
             'product_status', 'product_status_text', 'quality', 'quality_text',
-            'reject_reason', 'create_time', 'update_time', 'content', 'view_count',
-                'collect_count', 'images', 'is_reserved', 'location'
+            'create_time', 'update_time', 'content',
+                'images', 'is_reserved', 'location'
         ]
 
 
@@ -319,42 +319,9 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = [
-            'comment_id', 'order_id', 'product_id', 'product_title', 'user_id', 'buyer_name', 'buyer_avatar',
+            'comment_id',  'product_id', 'product_title', 'user_id', 'buyer_name', 'buyer_avatar',
             'avatar', 'user_avatar', 'seller_id', 'seller_name', 'seller_avatar', 'comment_content', 'rating', 
-            'comment_status', 'comment_status_text', 'create_time', 'comment_time', 'like_count'
-        ]
-
-
-
-
-
-class RecordSerializer(serializers.ModelSerializer):
-    """
-    浏览记录序列化器
-    """
-    # 添加商品信息
-    product_title = serializers.CharField(source='product_id.product_title', read_only=True)
-    product_price = serializers.IntegerField(source='product_id.product_price', read_only=True)
-    product_price_yuan = serializers.SerializerMethodField(read_only=True)
-    product_image = serializers.SerializerMethodField(read_only=True)
-    
-    def get_product_price_yuan(self, obj):
-        return obj.product_id.product_price
-    
-    def get_product_image(self, obj):
-        """
-        获取商品第一张图片
-        """
-        images = ProductImage.objects.filter(product_id=obj.product_id).order_by('sort_order')
-        if images.exists():
-            return images.first().image_url
-        return ''
-    
-    class Meta:
-        model = Record
-        fields = [
-            'record_id', 'user_id', 'product_id', 'product_title', 'product_price', 
-            'product_price_yuan', 'product_image', 'create_time'
+            'comment_status', 'comment_status_text', 'create_time'
         ]
 
 
@@ -427,7 +394,7 @@ class ListProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'product_id', 'id', 'product_title', 'title', 'category_name', 'product_price', 
-            'product_price_yuan', 'price', 'product_status', 'cover_image', 'cover', 'create_time', 'view_count', 'is_reserved', 'location'
+            'product_price_yuan', 'price', 'product_status', 'cover_image', 'cover', 'create_time', 'is_reserved', 'location'
         ]
 
 

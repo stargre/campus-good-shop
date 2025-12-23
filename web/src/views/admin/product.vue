@@ -228,8 +228,7 @@ const modal = reactive({
     product_o_price: undefined,
     product_price: undefined,
     product_status: undefined,
-    quality: undefined,
-    reject_reason: undefined
+    quality: undefined
   },
   rules: {
     product_title: [{ required: true, message: '请输入商品标题', trigger: 'change' }],
@@ -328,7 +327,6 @@ const handleEdit = (record: any) => {
   modal.form.product_price = record.product_price_yuan;     // 使用元为单位
   modal.form.product_status = record.product_status;
   modal.form.quality = record.quality;
-  modal.form.reject_reason = record.reject_reason;
   // 处理分类
   if (record.category_id) {
     modal.form.category = record.category_id;

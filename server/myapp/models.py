@@ -83,14 +83,11 @@ class Product(models.Model):
     product_price = models.IntegerField(verbose_name='商品现价（单位：分）')
     product_status = models.IntegerField(verbose_name='商品状态', choices=((0, '待审核'), (1, '审核通过'), (2, '审核不通过'), (3, '已售出')), default=0)
     quality = models.IntegerField(verbose_name='商品成色', choices=((1, '全新'), (2, '几乎全新'), (3, '轻微使用痕迹'), (4, '明显使用痕迹')), default=1)
-    reject_reason = models.CharField(max_length=255, verbose_name='审核不通过原因', null=True, blank=True)
     create_time = models.DateTimeField(verbose_name='商品创建时间', auto_now_add=True)
     update_time = models.DateTimeField(verbose_name='商品最后更新时间', auto_now=True)
     content = models.TextField(verbose_name='商品描述', null=True, blank=True)
     # 交易地点（新增）
     location = models.CharField(max_length=255, verbose_name='交易地点', null=True, blank=True)
-    view_count = models.IntegerField(verbose_name='浏览次数', default=0)
-    collect_count = models.IntegerField(verbose_name='收藏次数', default=0)
     is_reserved = models.BooleanField(verbose_name='是否已预约', default=False)
     cover_image_id = models.IntegerField(verbose_name='主图ID', null=True, blank=True)
     
@@ -168,7 +165,6 @@ class Comment(models.Model):
     用于存储用户对交易的评价信息
     """
     comment_id = models.AutoField(primary_key=True)
-    order_id = models.ForeignKey(UserOrder, verbose_name='关联的订单ID', on_delete=models.CASCADE, db_column='order_id', null=True, blank=True)
     product_id = models.ForeignKey(Product, verbose_name='关联的商品ID', on_delete=models.CASCADE, db_column='product_id', null=True, blank=True)
     user_id = models.ForeignKey(UserInfo, verbose_name='评论用户ID（买家）', on_delete=models.CASCADE, related_name='comments_as_user', db_column='user_id')
     seller_id = models.ForeignKey(UserInfo, verbose_name='被评论的卖家ID', on_delete=models.CASCADE, related_name='comments_as_seller', db_column='seller_id')
@@ -176,31 +172,12 @@ class Comment(models.Model):
     rating = models.IntegerField(verbose_name='评分：1-10分', default=10)
     comment_status = models.IntegerField(verbose_name='评论状态', choices=((0, '正常'), (1, '隐藏')), default=0)
     create_time = models.DateTimeField(verbose_name='评论时间', default=datetime.datetime.now)
-    comment_time = models.DateTimeField(verbose_name='评论显示时间', default=datetime.datetime.now)
-    like_count = models.IntegerField(verbose_name='点赞数', default=0)
     
     class Meta:
         db_table = 'comment'
         verbose_name = '交易评论表'
         verbose_name_plural = verbose_name
 
-
-        
-# 浏览记录表
-class Record(models.Model):
-    """
-    浏览记录模型
-    用于存储用户的商品浏览历史
-    """
-    record_id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(UserInfo, verbose_name='用户ID', on_delete=models.CASCADE, db_column='user_id')
-    product_id = models.ForeignKey(Product, verbose_name='商品ID', on_delete=models.CASCADE, db_column='product_id')
-    create_time = models.DateTimeField(verbose_name='浏览时间', default=datetime.datetime.now)
-    
-    class Meta:
-        db_table = 'record'
-        verbose_name = '用户浏览记录表'
-        verbose_name_plural = verbose_name
 
 # 公告表
 class BNotice(models.Model):

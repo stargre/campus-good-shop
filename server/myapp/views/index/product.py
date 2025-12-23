@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, authentication_classes, throttle
 from django.db.models import Q, F
 from myapp.auth.authentication import TokenAuthtication
 from myapp.handler import APIResponse
-from myapp.models import Product, ProductImage, UserInfo, Record, Address
+from myapp.models import Product, ProductImage, UserInfo,  Address
 from myapp.serializers import ProductSerializer, ProductDetailSerializer
 
 
@@ -37,8 +37,8 @@ def list(request):
         
         # 修复：将前端排序别名映射到数据库字段
         sort_mapping = {
-            'hot': 'view_count',
-            'recommend': 'collect_count',
+            'hot': 'quality',
+            'recommend': 'quality',
             'recent': 'create_time'
         }
         if sort in sort_mapping:
@@ -75,8 +75,8 @@ def list(request):
         # 应用排序 - 映射前端抽象排序字段到实际数据库字段
         # 将前端的 'hot', 'recommend', 'recent' 映射到实际字段
         sort_field_map = {
-            'hot': 'view_count',         # 热门 -> 浏览量
-            'recommend': 'collect_count', # 推荐 -> 收藏量
+            'hot': 'quality',         # 热门 -> 成色
+            'recommend': 'quality', # 推荐 -> 成色
             'recent': 'create_time'       # 最新 -> 创建时间
         }
         
@@ -129,28 +129,6 @@ def detail(request):
     try:
         pk = request.GET.get('id', -1)
         product = Product.objects.get(pk=pk)
-        
-        # 记录浏览历史
-        try:
-            # 如果用户已登录，记录用户浏览记录
-            token = request.META.get("HTTP_TOKEN", "")
-            if token:
-                users = UserInfo.objects.filter(token=token)
-                if len(users) > 0:
-                    user = users[0]
-                    # 检查是否已存在该用户对该商品的浏览记录
-                    record_exists = Record.objects.filter(user_id=user, product_id=product).exists()
-                    if not record_exists:
-                        Record.objects.create(
-                            user_id=user,
-                            product_id=product,
-                            create_time=datetime.now()
-                        )
-            
-            # 增加浏览量
-            Product.objects.filter(pk=pk).update(view_count=F('view_count') + 1)
-        except Exception as e:
-            print(f"记录浏览历史失败: {e}")
         
         # 序列化，使用包含完整信息的序列化器
         serializer = ProductDetailSerializer(product)

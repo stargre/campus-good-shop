@@ -40,7 +40,7 @@ def list_api(request):
             if order == 'recent':
                 orderBy = '-create_time'
             else:
-                orderBy = '-like_count'
+                orderBy = '-rating'
 
             comments = Comment.objects.select_related("product_id").filter(product_id=productId).order_by(orderBy)
             serializer = CommentSerializer(comments, many=True)
@@ -67,9 +67,9 @@ def list_my_comment(request):
         order = request.GET.get("order", 'recent')
 
         if order == 'recent':
-            orderBy = '-comment_time'
+            orderBy = '-create_time'
         else:
-            orderBy = '-like_count'
+            orderBy = '-rating'
 
         comments = Comment.objects.select_related("product_id").filter(user_id=user.user_id).order_by(orderBy)
         serializer = CommentSerializer(comments, many=True)
@@ -118,9 +118,7 @@ def create(request):
             comment_content=content,
             rating=10,
             comment_status=0,
-            like_count=0,
             create_time=timezone.now(),
-            comment_time=timezone.now()
         )
         serializer = CommentSerializer(comment)
         return APIResponse(code=0, msg='评论成功', data=serializer.data)
@@ -163,7 +161,6 @@ def like(request):
             return APIResponse(code=1, msg='commentId不能为空')
             
         comment = Comment.objects.get(pk=commentId)
-        comment.like_count += 1
         comment.save()
     except Comment.DoesNotExist:
         return APIResponse(code=1, msg='评论不存在')

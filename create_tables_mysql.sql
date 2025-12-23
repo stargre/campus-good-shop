@@ -148,7 +148,7 @@ CREATE TABLE `comment` (
   `seller_id` int NOT NULL,
   `user_id` int NOT NULL,
   `order_id` int DEFAULT NULL,
-  `comment_time` datetime(6) NOT NULL,
+  `create_time` datetime(6) NOT NULL,
   `like_count` int NOT NULL,
   `product_id` int DEFAULT NULL,
   PRIMARY KEY (`comment_id`),
