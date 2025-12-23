@@ -158,6 +158,7 @@ def cancel_order(request):
         # 恢复商品状态为审核通过
         product = order.product_id
         product.product_status = 1  # 1=审核通过
+        product.is_reserved = False  # 重置预约状态
         product.save()
         
         return APIResponse(code=0, msg='取消成功', data=UserOrderSerializer(order).data)
@@ -410,8 +411,50 @@ def refund(request):
 
         product = order.product_id
         product.product_status = 1  # 恢复为审核通过
+        product.is_reserved = False  # 重置预约状态
         product.save()
 
         return APIResponse(code=0, msg='退款成功', data=UserOrderSerializer(order).data)
     except Exception as e:
         return APIResponse(code=1, msg=f'退款失败: {str(e)}')
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthtication])
+def buyer_cancel_paid_order(request):
+    """买家取消已支付订单接口（仅限已支付但未发货的订单）"""
+    try:
+        token = request.META.get("HTTP_TOKEN", "")
+        users = UserInfo.objects.filter(token=token)
+        if len(users) == 0:
+            return APIResponse(code=1, msg='用户未登录')
+        user = users[0]
+
+        order_id = request.data.get('order_id')
+        if not order_id:
+            return APIResponse(code=1, msg='订单ID不能为空')
+
+        try:
+            order = UserOrder.objects.get(order_id=order_id)
+        except UserOrder.DoesNotExist:
+            return APIResponse(code=1, msg='订单不存在')
+
+        # 只有已支付状态的订单可以取消，并且必须由买家发起
+        if order.order_status != 1:
+            return APIResponse(code=1, msg='该订单不是可取消状态')
+        if order.user_id.user_id != user.user_id:
+            return APIResponse(code=1, msg='无权取消此订单')
+
+        # 执行取消：更新订单状态为已退款，并恢复商品状态
+        order.order_status = 5  # 5=已退款
+        order.update_time = timezone.now()
+        order.save()
+
+        product = order.product_id
+        product.product_status = 1  # 恢复为审核通过
+        product.is_reserved = False  # 重置预约状态
+        product.save()
+
+        return APIResponse(code=0, msg='取消成功，款项将原路退回', data=UserOrderSerializer(order).data)
+    except Exception as e:
+        return APIResponse(code=1, msg=f'取消失败: {str(e)}')

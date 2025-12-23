@@ -37,6 +37,15 @@
             >
               <a-button type="primary" size="small" style="margin-right: 24px;">取消</a-button>
             </a-popconfirm>
+            <a-popconfirm
+              v-if="Number(item.order_status)===1 && Number(item.user_id)===Number(userStore.user_id)"
+              title="确定取消订单？取消后款项将原路退回"
+              ok-text="是"
+              cancel-text="否"
+              @confirm="handleBuyerCancelPaid(item)"
+            >
+              <a-button type="default" size="small" style="margin-right: 24px;">取消订单</a-button>
+            </a-popconfirm>
             <span class="text">订单状态</span>
             <span class="state">{{item.order_status_text}}</span>
             <a-button v-if="Number(item.order_status)===1 && Number(item.seller_id)===Number(userStore.user_id)" type="primary" size="small" @click="handleDeliver(item)">发货</a-button>
@@ -94,7 +103,7 @@
 import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getOrderList as getOrderListApi, cancelOrder, deliverOrder, refundOrder } from '/@/api/index/order'
+import { getOrderList as getOrderListApi, cancelOrder, deliverOrder, refundOrder, buyerCancelPaidOrder } from '/@/api/index/order'
 import { BASE_URL } from '/@/store/constants'
 import { useUserStore } from '/@/store'
 
@@ -184,6 +193,17 @@ const handleRefund = (item) => {
     getOrderList()
   }).catch(err => {
     message.error(err.msg || '退款失败')
+  })
+}
+
+const handleBuyerCancelPaid = (item) => {
+  buyerCancelPaidOrder({
+    order_id: item.order_id
+  }).then(res => {
+    message.success('取消成功，款项将原路退回')
+    getOrderList()
+  }).catch(err => {
+    message.error(err.msg || '取消失败')
   })
 }
 

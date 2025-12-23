@@ -130,6 +130,17 @@ export const evaluateOrder = (data: EvaluateOrderParams): Promise<AxiosResponse>
 }
 
 /**
+ * 买家取消已支付订单
+ */
+export const buyerCancelPaidOrder = (data: {order_id: number}): Promise<AxiosResponse> => {
+  return request({
+    url: '/index/order/buyer-cancel-paid',
+    method: 'post',
+    data
+  })
+}
+
+/**
  * 预约管理相关API
  */
 

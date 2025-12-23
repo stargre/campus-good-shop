@@ -15,11 +15,11 @@
       </div>
       <div class="pay-choose-view" style="">
         <div class="pay-choose-box flex-view">
-          <div class="choose-box choose-box-active">
+          <div class="choose-box" :class="{'choose-box-active': payMethod === 'wechat'}" @click="selectPayMethod('wechat')">
             <WechatOutlined class="pay-icon" />
             <span>微信支付</span>
           </div>
-          <div class="choose-box">
+          <div class="choose-box" :class="{'choose-box-active': payMethod === 'alipay'}" @click="selectPayMethod('alipay')">
             <AlipayCircleOutlined class="pay-icon" />
             <span>支付宝</span>
           </div>
@@ -57,6 +57,7 @@ const router = useRouter();
 let ddlTime = ref()
 let amount = ref(0)
 let title = ref('')
+let payMethod = ref('wechat') // 默认选择微信支付
 
 onMounted(() => {
   amount.value = Number(route.query.amount || 0)
@@ -70,6 +71,14 @@ const handlePay = () => {
     message.error('订单ID缺失')
     return
   }
+  
+  // 根据选择的支付方式显示不同的提示
+  if (payMethod.value === 'wechat') {
+    message.info('选择微信支付')
+  } else if (payMethod.value === 'alipay') {
+    message.info('选择支付宝支付')
+  }
+  
   // 不实现真实支付，直接进入下一阶段：调用后端支付接口并跳转订单页
   import('/@/api/index/order').then(mod => {
     mod.payOrder(id).then(() => {
@@ -100,6 +109,10 @@ const handleCancelPay = () => {
       message.error(err.msg || '取消失败')
     })
   })
+}
+
+const selectPayMethod = (method) => {
+  payMethod.value = method
 }
 const formatDate = (time, format = 'YY-MM-DD hh:mm:ss') => {
   const date = new Date(time)

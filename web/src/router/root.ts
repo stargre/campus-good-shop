@@ -146,9 +146,7 @@ const constantRouterMap = [
     
       { path: 'category', name: 'category', component: () => import('/@/views/admin/category.vue') },
       { path: 'notice', name: 'notice', component: () => import('/@/views/admin/notice.vue') },
-      { path: 'opLog', name: 'opLog', component: () => import('/@/views/admin/op-log.vue') },
-      { path: 'errorLog', name: 'errorLog', component: () => import('/@/views/admin/error-log.vue') },
-      { path: 'sysInfo', name: 'sysInfo', component: () => import('/@/views/admin/sys-info.vue') },
+     { path: 'sysInfo', name: 'sysInfo', component: () => import('/@/views/admin/sys-info.vue') },
     ]
   },
 ];

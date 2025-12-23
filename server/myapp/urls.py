@@ -1,5 +1,5 @@
 """
-URL路由配置模块 - 校园闲置物品交易平台
+URL路由配置模块 - 校园二手交易平台
 定义所有API接口的URL路由
 """
 from django.urls import path
@@ -11,7 +11,7 @@ urlpatterns = [
     # ==================== 后台管理API ====================
     path('admin/overview/count', views.admin.overview.count),
     path('admin/overview/sysInfo', views.admin.overview.sysInfo),
-    # 商品管理
+    # 商品管理（替换原thing）
     path('admin/product/list', views.admin.product.list_api),
     path('admin/product/detail', views.admin.product.detail),
     path('admin/product/create', views.admin.product.create),
@@ -37,7 +37,6 @@ urlpatterns = [
     path('admin/user/info', views.admin.user.info),
     # 管理员登录
     path('admin/adminLogin', views.admin.user.admin_login),
-    # 系统日志
     # 公告管理
     path('admin/notice/list', views.admin.notice.list_api),
     path('admin/notice/create', views.admin.notice.create),
@@ -48,7 +47,7 @@ urlpatterns = [
     path('admin/comment/create', views.admin.comment.create),
     path('admin/comment/update', views.admin.comment.update),
     path('admin/comment/delete', views.admin.comment.delete),
-
+    
     # ==================== 前台用户API ====================
     # 用户认证
     path('index/user/login', views.index.user.login),
@@ -56,10 +55,6 @@ urlpatterns = [
     path('index/user/info', views.index.user.info),
     path('index/user/update', views.index.user.update),
     path('index/user/updatePwd', views.index.user.updatePwd),
-    # 找回密码
-    path('index/user/passwordResetRequest', views.index.user.passwordResetRequest),
-    path('index/user/passwordResetVerify', views.index.user.passwordResetVerify),
-    path('index/user/passwordResetConfirm', views.index.user.passwordResetConfirm),
     # 分类管理
     path('index/category/list', views.index.category.list_api),
     path('index/category/detail', views.index.category.detail),
@@ -78,18 +73,12 @@ urlpatterns = [
     path('index/order/detail', views.index.order.detail_api),
     path('index/order/create', views.index.order.create),
     path('index/order/cancel', views.index.order.cancel_order),
-    # 评论管理
-    path('index/comment/create', views.index.comment.create),
-    path('index/comment/list', views.index.comment.list_api),
-    path('index/comment/myList', views.index.comment.list_my_comment),
-    path('index/comment/like', views.index.comment.like),
-    path('index/comment/delete', views.index.comment.delete),
-    # 订单管理
     path('index/order/pay', views.index.order.pay),
     path('index/order/confirm', views.index.order.confirm_receipt),
     path('index/order/evaluate', views.index.order.evaluate),
     path('index/order/deliver', views.index.order.deliver),
     path('index/order/refund', views.index.order.refund),
+    path('index/order/buyer-cancel-paid', views.index.order.buyer_cancel_paid_order),
     # 系统通知
     path('index/notice/list', views.index.notice.list_api),
     # 搜索功能
@@ -111,7 +100,5 @@ urlpatterns = [
     path('index/comment/create', views.index.comment.create),
     path('index/comment/like', views.index.comment.like),
     path('index/comment/delete', views.index.comment.delete),
-    # 文件上传
-    path('index/upload/image', views.index.upload.image),
 
 ]
