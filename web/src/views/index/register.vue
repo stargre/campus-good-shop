@@ -106,6 +106,32 @@ const handleRegister = () => {
     return;
   }
 
+  // 验证邮箱格式
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(tData.loginForm.email)) {
+    message.warn('邮箱格式错误，必须包含@符号！')
+    return;
+  }
+
+  // 验证学号格式：2开头且6位
+  const studentIdRegex = /^2\d{5}$/;
+  if (!studentIdRegex.test(tData.loginForm.student_id)) {
+    message.warn('学号格式错误，必须是2开头的6位数字！')
+    return;
+  }
+
+  // 验证密码长度至少6位
+  if (tData.loginForm.password.length < 6) {
+    message.warn('密码至少为6位！')
+    return;
+  }
+
+  // 验证两次密码是否一致
+  if (tData.loginForm.password !== tData.loginForm.repassword) {
+    message.warn('两次密码不一致！')
+    return;
+  }
+
   userRegisterApi({
     username: tData.loginForm.username,
     email: tData.loginForm.email,

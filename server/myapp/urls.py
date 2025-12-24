@@ -100,5 +100,7 @@ urlpatterns = [
     path('index/comment/create', views.index.comment.create),
     path('index/comment/like', views.index.comment.like),
     path('index/comment/delete', views.index.comment.delete),
+    # 图片上传功能
+    path('index/upload/image', views.index.upload.image),
 
 ]

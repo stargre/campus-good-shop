@@ -20,9 +20,26 @@
 
 export function getFormatTime(dateTime,flag) {
   if(dateTime != null ) {
-    //若传入的dateTime为字符串类型，需要进行转换成数值，若不是无需下面注释代码
-    var time = parseInt(dateTime)
-    var date = new Date(time);
+    let date;
+    
+    // 判断输入类型并创建Date对象
+    if (typeof dateTime === 'string') {
+      // 如果是字符串，直接创建Date对象
+      // 处理ISO格式字符串和普通日期字符串
+      date = new Date(dateTime);
+    } else if (typeof dateTime === 'number') {
+      // 如果是数字，假设是时间戳（毫秒）
+      date = new Date(dateTime);
+    } else {
+      // 其他类型，尝试直接创建Date对象
+      date = new Date(dateTime);
+    }
+    
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) {
+      return "";
+    }
+    
     //获取年份
     var YY = date.getFullYear();
     //获取月份

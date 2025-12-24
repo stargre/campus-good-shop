@@ -87,8 +87,8 @@ def update(request):
         if not user:
             return APIResponse(code=1, msg='用户未登录')
         
-        # 获取地址ID
-        address_id = request.data.get('address_id')
+        # 获取地址ID（支持从request.data或request.GET获取）
+        address_id = request.data.get('address_id') or request.GET.get('address_id')
         if not address_id:
             return APIResponse(code=1, msg='缺少地址ID')
         
@@ -132,8 +132,8 @@ def delete(request):
         if not user:
             return APIResponse(code=1, msg='用户未登录')
         
-        # 获取地址ID
-        address_id = request.data.get('address_id')
+        # 获取地址ID（支持从request.data或request.GET获取）
+        address_id = request.data.get('address_id') or request.GET.get('address_id')
         if not address_id:
             return APIResponse(code=1, msg='缺少地址ID')
         

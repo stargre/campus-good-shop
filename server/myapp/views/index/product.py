@@ -38,7 +38,7 @@ def list(request):
         # 修复：将前端排序别名映射到数据库字段
         sort_mapping = {
             'hot': 'quality',
-            'recommend': 'quality',
+            'recommend': '?',
             'recent': 'create_time'
         }
         if sort in sort_mapping:
@@ -76,20 +76,25 @@ def list(request):
         # 将前端的 'hot', 'recommend', 'recent' 映射到实际字段
         sort_field_map = {
             'hot': 'quality',         # 热门 -> 成色
-            'recommend': 'quality', # 推荐 -> 成色
+            'recommend': '?', # 推荐 -> 随机
             'recent': 'create_time'       # 最新 -> 创建时间
         }
         
         # 获取实际排序字段，如果不在映射中则直接使用前端传递的值
         actual_sort = sort_field_map.get(sort, sort)
         
-        # 构建排序字符串
-        order_by = actual_sort
-        if order == 'desc':
-            order_by = f'-{actual_sort}'
-        
-        # 应用排序
-        products = products.order_by(order_by)
+        # 特殊处理推荐（随机）排序
+        if actual_sort == '?':
+            # 使用 order_by('?') 实现随机排序
+            products = products.order_by('?')
+        else:
+            # 构建排序字符串
+            order_by = actual_sort
+            if order == 'desc':
+                order_by = f'-{actual_sort}'
+            
+            # 应用排序
+            products = products.order_by(order_by)
         
         # 计算总数
         total = products.count()

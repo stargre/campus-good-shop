@@ -80,12 +80,6 @@ const columns = reactive([
     align: 'center'
   },
   {
-    title: '名称',
-    dataIndex: 'title',
-    key: 'title',
-    align: 'center'
-  },
-  {
     title: '评论内容',
     dataIndex: 'content',
     key: 'content',
@@ -155,7 +149,6 @@ const getList = () => {
           id: item.comment_id,
           index: index + 1,
           username: item.buyer_name,
-          title: item.product_title,
           content: item.comment_content,
           rating: item.rating,
           create_time: item.create_time

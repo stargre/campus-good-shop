@@ -33,7 +33,7 @@
           </div>
         </div>
       </div>
-        <template v-if="!addressList || addressList.length <= 0">
+        <template v-if="!pageData.addressData || pageData.addressData.length <= 0">
           <div class="empty-center">
             <a-empty description="暂无地址" />
           </div>

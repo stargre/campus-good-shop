@@ -105,6 +105,21 @@ def register(request):
     if not user_student_id or not user_name or not password or not repassword or not user_email:
         return APIResponse(code=1, msg='所有字段都不能为空')
 
+    # 验证邮箱格式
+    import re
+    email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+    if not re.match(email_pattern, user_email):
+        return APIResponse(code=1, msg='邮箱格式错误，必须包含@符号')
+
+    # 验证学号格式：2开头且6位
+    student_id_pattern = r'^2\d{5}$'
+    if not re.match(student_id_pattern, user_student_id):
+        return APIResponse(code=1, msg='学号格式错误，必须是2开头的6位数字')
+
+    # 验证密码长度至少6位
+    if len(password) < 6:
+        return APIResponse(code=1, msg='密码至少为6位')
+
     if password != repassword:
         return APIResponse(code=1, msg='两次密码不一致')
 
@@ -204,13 +219,6 @@ def passwordResetVerify(request):
         prs = PasswordReset.objects.filter(user__user_email=user_email, code=code, used=False).order_by('-created_at')
 
         # 调试输出：记录收到的验证请求与匹配到的记录数
-        try:
-            print(f"[密码找回-验证] 收到验证请求 email={user_email} code={code} matching_count={prs.count()}")
-            for i, item in enumerate(prs[:5]):
-                print(f"  match[{i}]: token={item.token} code={item.code} used={item.used} created_at={item.created_at} expire_at={item.expire_at}")
-        except Exception:
-            pass
-
         if not prs.exists():
             return APIResponse(code=1, msg='无效的邮箱或验证码')
 

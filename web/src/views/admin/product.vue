@@ -134,6 +134,12 @@ const columns = reactive([
     width: 60
   },
   {
+    title: '商品ID',
+    dataIndex: 'product_id',
+    key: 'product_id',
+    width: 80
+  },
+  {
     title: '标题',
     dataIndex: 'product_title',
     key: 'product_title'

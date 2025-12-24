@@ -20,7 +20,7 @@
                     <a-button type="link" danger style="margin-left:12px;">删除</a-button>
                   </a-popconfirm>
                 </div>
-                <div class="time">{{ getFormatTime(item.commentTime, true) }}</div>
+                <div class="time">{{ getFormatTime(item.create_time, true) }}</div>
                 <div class="content">{{ item.content }}</div>
               </div>
             </div>
@@ -39,13 +39,14 @@
 <script setup>
 import AvatarImg from '/@/assets/images/avatar.jpg'
 import { getImageUrl } from '/@/utils/url'
+import { message } from 'ant-design-vue'
 
 import {useUserStore} from "/@/store";
 
 const router = useRouter();
 const userStore = useUserStore();
 
-import {listUserCommentsApi} from '/@/api/index/comment'
+import {listUserCommentsApi, deleteApi} from '/@/api/index/comment'
 import {BASE_URL, SERVER_ORIGIN} from "/@/store/constants";
 import {getFormatTime} from '/@/utils'
 
@@ -76,7 +77,7 @@ const getCommentList =()=> {
         productId: it.product_id ?? it.productId,
         title: it.product_title ?? it.title ?? '',
         content: String(it.comment_content ?? it.content ?? ''),
-        commentTime: it.create_time ?? it.create_time ?? '',
+        create_time: it.create_time ?? it.create_time ?? '',
         avatar: avatarUrl || '',
         cover: (() => {
           const s = it.cover || ''

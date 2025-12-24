@@ -83,12 +83,39 @@ def create(request):
     """创建商品接口 - 移除Tag相关代码"""
     data = request.data.copy()
     
+    # 添加当前登录用户ID
+    if hasattr(request, 'user') and request.user:
+        data['user_id'] = request.user.user_id
+    else:
+        return APIResponse(code=1, msg='用户未登录或认证失败')
+    
+    # 打印原始数据以便调试
+    print("原始请求数据:", dict(request.data))
+    print("处理后的数据:", data)
+    
     # 移除Tag相关代码
     # tag_ids = data.pop('tags', [])  # 删除这行
     
     # 处理category_id和category字段的映射
     if 'category_id' in data:
-        data['category'] = data.pop('category_id')
+        category_value = data['category_id']
+        print("category_id原始值:", category_value, "类型:", type(category_value))
+        
+        # 如果是列表，取第一个值
+        if isinstance(category_value, list):
+            if category_value:
+                data['category'] = category_value[0]
+                print("从列表中提取category值:", data['category'])
+            else:
+                # 空列表，移除该字段
+                data.pop('category_id', None)
+                print("category_id为空列表，已移除")
+        else:
+            data['category'] = category_value
+            print("直接设置category值:", data['category'])
+        
+        # 移除原始的category_id字段
+        data.pop('category_id', None)
     
     # 序列化验证
     serializer = ProductSerializer(data=data)

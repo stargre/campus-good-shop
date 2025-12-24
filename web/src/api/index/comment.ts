@@ -3,7 +3,7 @@ import {get, post} from '/@/utils/http/axios';
 enum URL {
   create = '/index/comment/create',
   listProductComments = '/index/comment/list',
-  listUserComments = '/index/comment/myList',
+  listUserComments = '/index/comment/listMyComments',
   like = '/index/comment/like',
   delete = '/index/comment/delete'
 }

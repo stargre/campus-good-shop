@@ -25,11 +25,13 @@ class UserInfoSerializer(serializers.ModelSerializer):
     mobile = serializers.CharField(source='user_mobile', required=False, allow_blank=True, allow_null=True, max_length=20)
     # 头像字段兼容：输出为 avatar，内部存储 user_avart
     avatar = serializers.CharField(source='user_avart', read_only=True)
+    # 创建时间字段映射
+    create_time = serializers.DateTimeField(source='user_create_time', read_only=True)
 
     class Meta:
         model = UserInfo
         fields = ['id', 'user_id', 'user_student_id', 'username', 'user_name', 'nickname', 'user_collage', 
-                 'user_email', 'email', 'user_mobile', 'mobile', 'user_create_time', 'user_status', 'status', 'user_avart', 'avatar', 'token', 'password', 'role']
+                 'user_email', 'email', 'user_mobile', 'mobile', 'user_create_time', 'create_time', 'user_status', 'status', 'user_avart', 'avatar', 'token', 'password', 'role']
     
     def create(self, validated_data):
         # 处理密码字段映射

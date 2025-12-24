@@ -54,12 +54,7 @@
           <a-form ref="myform" :label-col="{ style: { width: '80px' } }" :model="modal.form" :rules="modal.rules">
             <a-row :gutter="24">
               <a-col span="24">
-                <a-form-item label="标题" name="title">
-                  <a-input placeholder="请输入标题" v-model:value="modal.form.title"></a-input>
-                </a-form-item>
-              </a-col>
-              <a-col span="24">
-                <a-form-item label="通知内容" name="content">
+                <a-form-item label="公告内容" name="content">
                   <a-textarea placeholder="请输入内容" :rows="4" v-model:value="modal.form.content"></a-textarea>
                 </a-form-item>
               </a-col>
@@ -90,13 +85,6 @@ const columns = reactive([
     align: 'center'
   },
   {
-    title: '内容',
-    dataIndex: 'content',
-    key: 'content',
-    align: 'center',
-    customRender: ({ text, record, index, column }) => text?.substring(0, 20) + '...',
-  },
-  {
     title: '操作',
     dataIndex: 'action',
     key: 'operation',
@@ -123,10 +111,10 @@ const modal = reactive({
   title: '',
   form: {
     id: undefined,
-    title: undefined,
+    content: undefined,
   },
   rules: {
-    title: [{ required: true, message: '请输入', trigger: 'change' }],
+    content: [{ required: true, message: '请输入', trigger: 'change' }],
   },
 });
 
@@ -146,7 +134,7 @@ const getDataList = () => {
         const list = Array.isArray(res.data) ? res.data : []
         const mapped = list.map((item: any, index: any) => ({
           id: item.b_notice_id,
-          title: item.notice_content,
+          title: item.notice_content?.substring(0, 20) + '...',
           content: item.notice_content,
           index: index + 1,
         }))
@@ -227,7 +215,7 @@ const handleOk = () => {
         if (modal.editFlag) {
           updateApi({
             b_notice_id: modal.form.id
-          }, { notice_content: modal.form.title })
+          }, { notice_content: modal.form.content })
               .then((res) => {
                 hideModal();
                 getDataList();
@@ -237,7 +225,7 @@ const handleOk = () => {
                 message.error(err.msg || '操作失败');
               });
         } else {
-          createApi({ notice_content: modal.form.title })
+          createApi({ notice_content: modal.form.content })
               .then((res) => {
                 hideModal();
                 getDataList();

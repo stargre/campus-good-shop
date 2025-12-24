@@ -130,13 +130,26 @@ def create(request):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthtication])
 def delete(request):
+    """
+    删除评论接口
+    请求体: {"ids": "评论ID"} 或 GET参数: {"ids": "评论ID"}
+    Returns:
+        APIResponse: 操作结果
+    """
     try:
-        ids = request.GET.get('ids')
+        # 支持从GET参数或POST body获取ids
+        ids = request.GET.get('ids') or request.data.get('ids')
+        if not ids:
+            return APIResponse(code=1, msg='ids不能为空')
+            
         ids_arr = ids.split(',')
         Comment.objects.filter(comment_id__in=ids_arr).delete()
     except Comment.DoesNotExist:
         return APIResponse(code=1, msg='对象不存在')
+    except Exception as e:
+        return APIResponse(code=1, msg=f'删除失败: {str(e)}')
 
     return APIResponse(code=0, msg='删除成功')
 

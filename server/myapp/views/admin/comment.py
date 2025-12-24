@@ -85,6 +85,14 @@ def create(request):
 
         # 尝试从订单或商品推导卖家ID
         from myapp.models import UserOrder, Product
+        
+        # 如果没有提供seller_id，尝试从商品中获取
+        if not seller_id and product_id:
+            try:
+                product = Product.objects.get(product_id=product_id)
+                seller_id = product.user_id.user_id
+            except Product.DoesNotExist:
+                return APIResponse(code=1, msg='商品不存在')
 
         # 构建评论数据
         comment_data = {
